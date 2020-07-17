@@ -1,5 +1,5 @@
 <template>
-    <v-navigation-drawer app bottom permanent background fixed clipped color="blue lighten-5">
+    <v-navigation-drawer app bottom mini-variant right background expand-on-hover fixed clipped-right color="blue lighten-5">
         <v-list>
             <v-list-item>
                 <img class="pa-3" src="/Logo.png">

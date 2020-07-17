@@ -1,159 +1,184 @@
 <template>
-  <div>
-    <beautiful-chat
-      :participants="participants"
-      :titleImageUrl="titleImageUrl"
-      :onMessageWasSent="onMessageWasSent"
-      :messageList="messageList"
-      :newMessagesCount="newMessagesCount"
-      :isOpen="isChatOpen"
-      :close="closeChat"
-      :icons="icons"
-      :open="openChat"
-      :showEmoji="true"
-      :showFile="true"
-      :showEdition="true"
-      :showDeletion="true"
-      :showTypingIndicator="showTypingIndicator"
-      :showLauncher="true"
-      :showCloseButton="true"
-      :colors="colors"
-      :alwaysScrollToBottom="alwaysScrollToBottom"
-      :messageStyling="messageStyling"
-      @onType="handleOnType"
-      @edit="editMessage" />
-  </div>
+  <chat-window 
+  :currentUserId="currentUserId"
+  :rooms="rooms" 
+  :messages="messages" 
+  :showemojis="showEmojis"
+  :messageactions="messageActions"
+  />
 </template>
 
 <script>
-import CloseIcon from 'vue-beautiful-chat/src/assets/close-icon.png'
-import OpenIcon from 'vue-beautiful-chat/src/assets/logo-no-bg.svg'
-import FileIcon from 'vue-beautiful-chat/src/assets/file.svg'
-import CloseIconSvg from 'vue-beautiful-chat/src/assets/close.svg'
+  import ChatWindow from 'vue-advanced-chat'
+  import 'vue-advanced-chat/dist/vue-advanced-chat.css'
 
-export default {
-  name: 'app',
-  data() {
-    return {
-      icons:{
-        open:{
-          img: OpenIcon,
-          name: 'default',
-        },
-        close:{
-          img: CloseIcon,
-          name: 'default',
-        },
-        file:{
-          img: FileIcon,
-          name: 'default',
-        },
-        closeSvg:{
-          img: CloseIconSvg,
-          name: 'default',
-        },
-      },
-      participants: [
-        {
-          id: 'user1',
-          name: 'Toni',
-          imageUrl: 'https://avatars3.githubusercontent.com/u/1915989?s=230&v=4'
+  export default {
+    components: {
+      ChatWindow
+    },
+    data() {
+      return {
+        currentUserId: 1234,  //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
+        rooms: [],  //tekuce sobe -> stavi u seperate js file
+        loadingRooms: true, //spinner icon dok se ucitava soba
+        roomId: ["pepe"], // moze string, a i boolean
+        messages: [], //poruke -> stavi u seperate js file
+        roomMessage: {}, //default textarea value, npr. Pozdrav!
+        messagesLoaded: false, //nesto o skrolanju gore
+        menuActions: [{ //sluzi za gumb na tri veritkalne tocke, ako ces menuActionHandler event za custom akciju 
+          name: "inviteUser",
+          title: "Invite User",
         },
         {
-          id: 'user2',
-          name: 'Nikki',
-          imageUrl: 'https://avatars3.githubusercontent.com/u/37018832?s=200&v=4'
-        }
-      ], // the list of all the participant of the conversation. `name` is the user name, `id` is used to establish the author of a message, `imageUrl` is supposed to be the user avatar.
-      titleImageUrl: 'https://a.slack-edge.com/66f9/img/avatars-teams/ava_0001-34.png',
-      messageList: [
-          { type: 'text', author: `me`, data: { text: `Say yes!` } },
-          { type: 'text', author: `user1`, data: { text: `Yes.` } }
-      ], // the list of the messages to show, can be paginated and adjusted dynamically
-      newMessagesCount: 0,
-      isChatOpen: true, // to determine whether the chat window should be open or closed
-      showTypingIndicator: '', // when set to a value matching the participant.id it shows the typing indicator for the specific user
-      colors: {
-        header: {
-          bg: '#039BE5',
-          text: '#ffffff'
+          name: "removeUser",
+          title: "Remove User",
         },
-        launcher: {
-          bg: '#039BE5'
+        {
+          name: "deleteRoom",
+          title: "Delete Room"
+        }],
+        messageActions: [
+        {
+          name: 'replyMessage',
+          title: 'Reply'
         },
-        messageList: {
-          bg: '#ffffff'
+        {
+          name: 'editMessage',
+          title: 'Edit Message',
+          onlyMe: true
         },
-        sentMessage: {
-          bg: '#4e8cff',
-          text: '#ffffff'
-        },
-        receivedMessage: {
-          bg: '#eaeaea',
-          text: '#222222'
-        },
-        userInput: {
-          bg: '#f4f7f9',
-          text: '#565867'
-        }
-      }, // specifies the color scheme for the component
-      alwaysScrollToBottom: false, // when set to true always scrolls the chat to the bottom when new events are in (new message, user starts typing...)
-      messageStyling: true // enables *bold* /emph/ _underline_ and such (more info at github.com/mattezza/msgdown)
-    }
+        {
+          name: 'deleteMessage',
+          title: 'Delete Message',
+          onlyMe: true
+        }],
+        showEmojis: true,
+        showFiles: true,
+        showrReactionEmojis: true,
+        showAddRoom: true, //ne znam jos
+        textMessages: {}, //ne znam ni ovo, check it out https://github.com/antoine92190/vue-advanced-chat
+        textFormatting: true, //bold, italic,..., check it out https://github.com/antoine92190/vue-advanced-chat
+        responsiveBreakpoint: 900, //kad se smanji viewport, 900 je default
+        //theme: light, //light je default
+        
+        
+        styles: {general: {
+    color: '#0a0a0a',
+    backgroundInput: '#fff',
+    colorPlaceholder: '#9ca6af',
+    colorCaret: '#1976d2',
+    colorSpinner: '#333',
+    borderStyle: '1px solid #e1e4e8',
+    backgroundScrollIcon: '#fff'
   },
-  methods: {
-    sendMessage (text) {
-      if (text.length > 0) {
-        this.newMessagesCount = this.isChatOpen ? this.newMessagesCount : this.newMessagesCount + 1
-        this.onMessageWasSent({ author: 'support', type: 'text', data: { text } })
+
+  container: {
+    border: 'none',
+    borderRadius: '4px',
+    boxShadow: '0px 3px 1px 1px #000'
+  },
+
+  header: {
+    background: '#fff',
+    colorRoomName: '#0a0a0a',
+    colorRoomInfo: '#9ca6af'
+  },
+
+  footer: {
+    background: '#f8f9fa',
+    borderStyleInput: '1px solid #e1e4e8',
+    borderInputSelected: '#1976d2',
+    backgroundReply: 'rgba(0, 0, 0, 0.08)'
+  },
+
+  content: {
+    background: '#f8f9fa'
+  },
+
+  sidemenu: {
+    background: '#fff',
+    backgroundHover: '#f6f6f6',
+    backgroundActive: '#e5effa',
+    colorActive: '#1976d2',
+    borderColorSearch: '#e1e5e8'
+  },
+
+  dropdown: {
+    background: '#fff',
+    backgroundHover: '#f6f6f6'
+  },
+
+  message: {
+    background: '#fff',
+    backgroundMe: '#ccf2cf',
+    color: '#0a0a0a',
+    colorStarted: '#9ca6af',
+    backgroundDeleted: '#dadfe2',
+    colorDeleted: '#757e85',
+    colorUsername: '#9ca6af',
+    colorTimestamp: '#828c94',
+    backgroundDate: '#e5effa',
+    colorDate: '#505a62',
+    backgroundReply: 'rgba(0, 0, 0, 0.08)',
+    colorReplyUsername: '#0a0a0a',
+    colorReply: '#6e6e6e',
+    backgroundImage: '#ddd',
+    colorNewMessages: '#1976d2',
+    backgroundReaction: '#eee',
+    borderStyleReaction: '1px solid #eee',
+    backgroundReactionHover: '#fff',
+    borderStyleReactionHover: '1px solid #ddd',
+    colorReactionCounter: '#0a0a0a',
+    backgroundReactionMe: '#cfecf5',
+    borderStyleReactionMe: '1px solid #3b98b8',
+    backgroundReactionHoverMe: '#cfecf5',
+    borderStyleReactionHoverMe: '1px solid #3b98b8',
+    colorReactionCounterMe: '#0b59b3'
+  },
+
+  markdown: {
+    background: 'rgba(239, 239, 239, 0.7)',
+    border: 'rgba(212, 212, 212, 0.9)',
+    color: '#e01e5a',
+    colorMulti: '#0a0a0a'
+  },
+
+  room: {
+    colorUsername: '#0a0a0a',
+    colorMessage: '#67717a',
+    colorTimestamp: '#a2aeb8',
+    colorStateOnline: '#4caf50',
+    colorStateOffline: '#ccc'
+  },
+
+  emoji: {
+    background: '#fff'
+  },
+
+  icons: {
+    search: '#9ca6af',
+    add: '#1976d2',
+    toggle: '#0a0a0a',
+    menu: '#0a0a0a',
+    close: '#9ca6af',
+    closeImage: '#fff',
+    file: '#1976d2',
+    paperclip: '#1976d2',
+    closeOutline: '#000',
+    send: '#1976d2',
+    sendDisabled: '#9ca6af',
+    emoji: '#1976d2',
+    emojiReaction: '#828c94',
+    document: '#1976d2',
+    pencil: '#9e9e9e',
+    checkmark: '#0696c7',
+    eye: '#fff',
+    dropdownMessage: '#fff',
+    dropdownMessageBackground: 'rgba(0, 0, 0, 0.25)',
+    dropdownScroll: '#0a0a0a'
+  }}, //css    
       }
-    },
-    onMessageWasSent (message) {
-      // called when the user sends a message
-      this.messageList = [ ...this.messageList, message ]
-    },
-    openChat () {
-      // called when the user clicks on the fab button to open the chat
-      this.isChatOpen = true
-      this.newMessagesCount = 0
-    },
-    closeChat () {
-      // called when the user clicks on the botton to close the chat
-      this.isChatOpen = false
-    },
-    handleScrollToTop () {
-      // called when the user scrolls message list to top
-      // leverage pagination for loading another page of messages
-    },
-    handleOnType () {
-      console.log('Emit typing event')
-    },
-    editMessage(message){
-      const m = this.messageList.find(m=>m.id === message.id);
-      m.isEdited = true;
-      m.data.text = message.data.text;
     }
-}
-}
+  }
 </script>
 
-<style lang="scss">
-
-.sc-chat-window.opened {
-  //width: 1500px !important;
-  width: calc(100% - 330px) !important;
-  right: 40px;
-  //max-height: 800px;
-  height: calc(80%);
-  //max-width: 600px;
-}
-.sc-message {
-  width: calc(80%);
-  margin: auto;
-  padding-bottom: 10px;
-  display: flex;
-}
-.sc-user-input--text {
-  width: 400px !important;
-}
-</style>
