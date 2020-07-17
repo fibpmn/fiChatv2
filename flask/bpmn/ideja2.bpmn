@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_18zj5q1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.7.2">
+  <bpmn:collaboration id="Collaboration_0dktwkn">
+    <bpmn:extensionElements>
+      <camunda:properties>
+        <camunda:property />
+      </camunda:properties>
+    </bpmn:extensionElements>
+    <bpmn:participant id="Participant_022hb2z" name="" processRef="ideja2" />
+  </bpmn:collaboration>
+  <bpmn:process id="ideja2" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1ca3fv8">
+      <bpmn:lane id="Lane_01qx0e1" name="Ured za studente">
+        <bpmn:flowNodeRef>Activity_0ycxsi5</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_04pxlqz</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1ure1cw" name="Mentori">
+        <bpmn:flowNodeRef>mentor_odlucuje</bpmn:flowNodeRef>
+        <bpmn:childLaneSet id="LaneSet_1tnw34j" />
+      </bpmn:lane>
+      <bpmn:lane id="Lane_1swgb3c" name="Student">
+        <bpmn:flowNodeRef>StartEvent_1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>ispuniprijedlog</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>posaljiprijedlog</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0nz9nip</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="StartEvent_1" name="Prijava teme zavrsnog">
+      <bpmn:outgoing>Flow_0lsbfrj</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="ispuniprijedlog" name="Ispuni prijedlog zavrsne teme" camunda:formKey="ispuniprijedlogkey" camunda:candidateGroups="Studenti">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="NaslovaTeme" label="Naslov teme" type="string" />
+          <camunda:formField id="SazetakProblema" label="Sazetak" type="string" />
+          <camunda:formField id="DispozicijaRada" label="Dispozicija" type="string" />
+          <camunda:formField id="PopisLiterature" label="Literatura" type="string" />
+          <camunda:formField id="IspunjeniObrazac" label="Ispunjeni obrazac" type="boolean" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0lsbfrj</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rffsgv</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="posaljiprijedlog" name="Posalji prijedlog" camunda:type="external" camunda:topic="Posalji">
+      <bpmn:incoming>Flow_1rffsgv</bpmn:incoming>
+      <bpmn:outgoing>Flow_1oct56z</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_0ycxsi5" name="Zaprimi i pregledaj prijavu" camunda:assignee="PeroID" camunda:candidateGroups="Referada">
+      <bpmn:incoming>Flow_0pzmg8o</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ewzyiw</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_0nz9nip" name="Posalji formalnu prijavu" camunda:candidateGroups="Studenti">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="NaslovFormal" type="string" />
+          <camunda:formField id="SazetakFormal" type="string" />
+          <camunda:formField id="DispozicijaFormal" type="string" />
+          <camunda:formField id="LiteraturaFormal" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_10vvv2l</bpmn:incoming>
+      <bpmn:outgoing>Flow_0pzmg8o</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="Event_04pxlqz" name="Tema je uspjesno prijavljena">
+      <bpmn:incoming>Flow_1ewzyiw</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:subProcess id="mentor_odlucuje">
+      <bpmn:incoming>Flow_1oct56z</bpmn:incoming>
+      <bpmn:outgoing>Flow_10vvv2l</bpmn:outgoing>
+      <bpmn:multiInstanceLoopCharacteristics camunda:collection="${assigneeList}" camunda:elementVariable="${assignee}">
+        <bpmn:inputDataItem name="assignee" />
+        <bpmn:completionCondition xsi:type="bpmn:tFormalExpression">${odluka == true}</bpmn:completionCondition>
+      </bpmn:multiInstanceLoopCharacteristics>
+      <bpmn:sequenceFlow id="Flow_1bzdy35" sourceRef="Activity_1ez4al5" targetRef="Event_1hirgjo" />
+      <bpmn:sequenceFlow id="Flow_1mwhn00" name="Da" sourceRef="Gateway_1aimqrb" targetRef="Activity_1ez4al5">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${odluka == true}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_1lh1u6y" name="Ne" sourceRef="Gateway_1aimqrb" targetRef="Event_1l46cpc">
+        <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${odluka == false}</bpmn:conditionExpression>
+      </bpmn:sequenceFlow>
+      <bpmn:sequenceFlow id="Flow_1vjoeob" sourceRef="Activity_1h1p2x0" targetRef="Gateway_1aimqrb" />
+      <bpmn:sequenceFlow id="Flow_1m1rh8p" sourceRef="Event_05bb403" targetRef="Activity_1h1p2x0" />
+      <bpmn:endEvent id="Event_1l46cpc" name="Tema je koma">
+        <bpmn:incoming>Flow_1lh1u6y</bpmn:incoming>
+        <bpmn:errorEventDefinition id="ErrorEventDefinition_01gv3t2" errorRef="Error_1c6l9e3" />
+      </bpmn:endEvent>
+      <bpmn:endEvent id="Event_1hirgjo" name="Tema je zadovoljavajuca">
+        <bpmn:incoming>Flow_1bzdy35</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:exclusiveGateway id="Gateway_1aimqrb" name="Je li tema u redu?">
+        <bpmn:incoming>Flow_1vjoeob</bpmn:incoming>
+        <bpmn:outgoing>Flow_1lh1u6y</bpmn:outgoing>
+        <bpmn:outgoing>Flow_1mwhn00</bpmn:outgoing>
+      </bpmn:exclusiveGateway>
+      <bpmn:startEvent id="Event_05bb403" name="Pregled teme">
+        <bpmn:outgoing>Flow_1m1rh8p</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="Activity_1ez4al5" name="Konzultiraj promjene u prijavi" camunda:assignee="${assignee}">
+        <bpmn:extensionElements>
+          <camunda:formData>
+            <camunda:formField id="NaslovTemeISP" label="Naslov" type="string" />
+            <camunda:formField id="SazetakProblemaISP" label="Sazetak" type="string" />
+            <camunda:formField id="DispozicijaRadaISP" label="Dispozicija" type="string" />
+            <camunda:formField id="PopisLiteratureISP" label="Literatura" type="string" />
+          </camunda:formData>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_1mwhn00</bpmn:incoming>
+        <bpmn:outgoing>Flow_1bzdy35</bpmn:outgoing>
+      </bpmn:userTask>
+      <bpmn:userTask id="Activity_1h1p2x0" name="Odluci o prijedlogu teme" camunda:assignee="${assignee}">
+        <bpmn:extensionElements>
+          <camunda:formData>
+            <camunda:formField id="odluka" label="Odluka" type="boolean" defaultValue="true" />
+          </camunda:formData>
+        </bpmn:extensionElements>
+        <bpmn:incoming>Flow_1m1rh8p</bpmn:incoming>
+        <bpmn:outgoing>Flow_1vjoeob</bpmn:outgoing>
+      </bpmn:userTask>
+    </bpmn:subProcess>
+    <bpmn:sequenceFlow id="Flow_1oct56z" sourceRef="posaljiprijedlog" targetRef="mentor_odlucuje" />
+    <bpmn:sequenceFlow id="Flow_1rffsgv" sourceRef="ispuniprijedlog" targetRef="posaljiprijedlog" />
+    <bpmn:sequenceFlow id="Flow_10vvv2l" sourceRef="mentor_odlucuje" targetRef="Activity_0nz9nip" />
+    <bpmn:sequenceFlow id="Flow_1ewzyiw" sourceRef="Activity_0ycxsi5" targetRef="Event_04pxlqz" />
+    <bpmn:sequenceFlow id="Flow_0pzmg8o" sourceRef="Activity_0nz9nip" targetRef="Activity_0ycxsi5" />
+    <bpmn:sequenceFlow id="Flow_0lsbfrj" sourceRef="StartEvent_1" targetRef="ispuniprijedlog" />
+  </bpmn:process>
+  <bpmn:error id="Error_1c6l9e3" name="Error_1mf1e44" errorCode="Tema je koma" camunda:errorMessage="Tema je koma" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0dktwkn">
+      <bpmndi:BPMNShape id="Participant_022hb2z_di" bpmnElement="Participant_022hb2z" isHorizontal="true">
+        <dc:Bounds x="129" y="80" width="1691" height="760" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1swgb3c_di" bpmnElement="Lane_1swgb3c" isHorizontal="true">
+        <dc:Bounds x="159" y="80" width="1661" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1ure1cw_di" bpmnElement="Lane_1ure1cw" isHorizontal="true">
+        <dc:Bounds x="159" y="380" width="1661" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_01qx0e1_di" bpmnElement="Lane_01qx0e1" isHorizontal="true">
+        <dc:Bounds x="159" y="680" width="1661" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0lsbfrj_di" bpmnElement="Flow_0lsbfrj">
+        <di:waypoint x="268" y="267" />
+        <di:waypoint x="340" y="267" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0pzmg8o_di" bpmnElement="Flow_0pzmg8o">
+        <di:waypoint x="1550" y="307" />
+        <di:waypoint x="1550" y="710" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ewzyiw_di" bpmnElement="Flow_1ewzyiw">
+        <di:waypoint x="1600" y="750" />
+        <di:waypoint x="1712" y="750" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10vvv2l_di" bpmnElement="Flow_10vvv2l">
+        <di:waypoint x="1340" y="530" />
+        <di:waypoint x="1420" y="530" />
+        <di:waypoint x="1420" y="267" />
+        <di:waypoint x="1500" y="267" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rffsgv_di" bpmnElement="Flow_1rffsgv">
+        <di:waypoint x="440" y="267" />
+        <di:waypoint x="510" y="267" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1oct56z_di" bpmnElement="Flow_1oct56z">
+        <di:waypoint x="560" y="307" />
+        <di:waypoint x="560" y="550" />
+        <di:waypoint x="630" y="550" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="232" y="249" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="219" y="292" width="62" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1e6gx73_di" bpmnElement="ispuniprijedlog">
+        <dc:Bounds x="340" y="227" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_104vaj9_di" bpmnElement="posaljiprijedlog">
+        <dc:Bounds x="510" y="227" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_08ogv4l_di" bpmnElement="Activity_0ycxsi5">
+        <dc:Bounds x="1500" y="710" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_07ed0k6_di" bpmnElement="Activity_0nz9nip">
+        <dc:Bounds x="1500" y="227" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_04pxlqz_di" bpmnElement="Event_04pxlqz">
+        <dc:Bounds x="1712" y="732" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1687" y="775" width="86" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1jnquoq_di" bpmnElement="mentor_odlucuje" isExpanded="true">
+        <dc:Bounds x="630" y="410" width="710" height="240" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1m1rh8p_di" bpmnElement="Flow_1m1rh8p">
+        <di:waypoint x="706" y="540" />
+        <di:waypoint x="784" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1vjoeob_di" bpmnElement="Flow_1vjoeob">
+        <di:waypoint x="884" y="540" />
+        <di:waypoint x="939" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1lh1u6y_di" bpmnElement="Flow_1lh1u6y">
+        <di:waypoint x="964" y="565" />
+        <di:waypoint x="964" y="600" />
+        <di:waypoint x="1052" y="600" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="979" y="580" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mwhn00_di" bpmnElement="Flow_1mwhn00">
+        <di:waypoint x="964" y="515" />
+        <di:waypoint x="964" y="470" />
+        <di:waypoint x="1030" y="470" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="972" y="491" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1bzdy35_di" bpmnElement="Flow_1bzdy35">
+        <di:waypoint x="1130" y="470" />
+        <di:waypoint x="1180" y="470" />
+        <di:waypoint x="1180" y="540" />
+        <di:waypoint x="1242" y="540" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_1m5xv68_di" bpmnElement="Event_1l46cpc">
+        <dc:Bounds x="1052" y="582" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1036" y="625" width="69" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1hirgjo_di" bpmnElement="Event_1hirgjo">
+        <dc:Bounds x="1242" y="522" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1221" y="565" width="79" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1aimqrb_di" bpmnElement="Gateway_1aimqrb" isMarkerVisible="true">
+        <dc:Bounds x="939" y="515" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="996" y="533" width="88" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_05bb403_di" bpmnElement="Event_05bb403">
+        <dc:Bounds x="670" y="522" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="655" y="565" width="66" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0picmqf_di" bpmnElement="Activity_1ez4al5">
+        <dc:Bounds x="1030" y="430" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0trfuqi_di" bpmnElement="Activity_1h1p2x0">
+        <dc:Bounds x="784" y="500" width="100" height="80" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
