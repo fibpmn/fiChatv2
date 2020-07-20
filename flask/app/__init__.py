@@ -8,3 +8,7 @@ app.config.from_object(Config)
 CORS(app, resources={r'/*': {'origins': '*'}})
 
 from app import routes
+
+if __name__ == '__main__':
+    app.run()
+

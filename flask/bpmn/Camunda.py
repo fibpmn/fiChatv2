@@ -145,6 +145,7 @@ class client:
             print(start.status_code)
         except:
             print("Failed to Get Process Variable")
+            
     def correlateamessage2(self, messageName, resultEnabled, processVariables):
         endpoint = str(self.url) + "/message"
         response = {
