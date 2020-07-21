@@ -1,184 +1,190 @@
 <template>
-  <chat-window 
-  :currentUserId="currentUserId"
-  :rooms="rooms" 
-  :messages="messages" 
-  :showemojis="showEmojis"
-  :messageactions="messageActions"
+  <chat-window
+    height="calc(100vh - 80px)"
+    :currentUserId="currentUserId"
+    :rooms="rooms"
+    :messages="messages"
+    :showemojis="showEmojis"
+    :messageactions="messageActions"
   />
 </template>
 
 <script>
-  import ChatWindow from 'vue-advanced-chat'
-  import 'vue-advanced-chat/dist/vue-advanced-chat.css'
+import ChatWindow from "vue-advanced-chat";
+import "vue-advanced-chat/dist/vue-advanced-chat.css";
 
-  export default {
-    components: {
-      ChatWindow
-    },
-    data() {
-      return {
-        currentUserId: 1234,  //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
-        rooms: [],  //tekuce sobe -> stavi u seperate js file
-        loadingRooms: true, //spinner icon dok se ucitava soba
-        roomId: ["pepe"], // moze string, a i boolean
-        messages: [], //poruke -> stavi u seperate js file
-        roomMessage: {}, //default textarea value, npr. Pozdrav!
-        messagesLoaded: false, //nesto o skrolanju gore
-        menuActions: [{ //sluzi za gumb na tri veritkalne tocke, ako ces menuActionHandler event za custom akciju 
+export default {
+  components: {
+    ChatWindow
+  },
+  data() {
+    return {
+      currentUserId: 1234, //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
+      rooms: [], //tekuce sobe -> stavi u seperate js file
+      loadingRooms: true, //spinner icon dok se ucitava soba
+      roomId: ["pepe"], // moze string, a i boolean
+      messages: [], //poruke -> stavi u seperate js file
+      roomMessage: {}, //default textarea value, npr. Pozdrav!
+      messagesLoaded: false, //nesto o skrolanju gore
+      menuActions: [
+        {
+          //sluzi za gumb na tri veritkalne tocke, ako ces menuActionHandler event za custom akciju
           name: "inviteUser",
-          title: "Invite User",
+          title: "Invite User"
         },
         {
           name: "removeUser",
-          title: "Remove User",
+          title: "Remove User"
         },
         {
           name: "deleteRoom",
           title: "Delete Room"
-        }],
-        messageActions: [
+        }
+      ],
+      messageActions: [
         {
-          name: 'replyMessage',
-          title: 'Reply'
+          name: "replyMessage",
+          title: "Reply"
         },
         {
-          name: 'editMessage',
-          title: 'Edit Message',
+          name: "editMessage",
+          title: "Edit Message",
           onlyMe: true
         },
         {
-          name: 'deleteMessage',
-          title: 'Delete Message',
+          name: "deleteMessage",
+          title: "Delete Message",
           onlyMe: true
-        }],
-        showEmojis: true,
-        showFiles: true,
-        showrReactionEmojis: true,
-        showAddRoom: true, //ne znam jos
-        textMessages: {}, //ne znam ni ovo, check it out https://github.com/antoine92190/vue-advanced-chat
-        textFormatting: true, //bold, italic,..., check it out https://github.com/antoine92190/vue-advanced-chat
-        responsiveBreakpoint: 900, //kad se smanji viewport, 900 je default
-        //theme: light, //light je default
-        
-        
-        styles: {general: {
-    color: '#0a0a0a',
-    backgroundInput: '#fff',
-    colorPlaceholder: '#9ca6af',
-    colorCaret: '#1976d2',
-    colorSpinner: '#333',
-    borderStyle: '1px solid #e1e4e8',
-    backgroundScrollIcon: '#fff'
-  },
+        }
+      ],
+      showEmojis: true,
+      showFiles: true,
+      showrReactionEmojis: true,
+      showAddRoom: true, //ne znam jos
+      textMessages: {}, //ne znam ni ovo, check it out https://github.com/antoine92190/vue-advanced-chat
+      textFormatting: true, //bold, italic,..., check it out https://github.com/antoine92190/vue-advanced-chat
+      responsiveBreakpoint: 900, //kad se smanji viewport, 900 je default
+      //theme: light, //light je default
 
-  container: {
-    border: 'none',
-    borderRadius: '4px',
-    boxShadow: '0px 3px 1px 1px #000'
-  },
+      styles: {
+        general: {
+          color: "#0a0a0a",
+          backgroundInput: "#fff",
+          colorPlaceholder: "#9ca6af",
+          colorCaret: "#1976d2",
+          colorSpinner: "#333",
+          borderStyle: "1px solid #e1e4e8",
+          backgroundScrollIcon: "#fff"
+        },
 
-  header: {
-    background: '#fff',
-    colorRoomName: '#0a0a0a',
-    colorRoomInfo: '#9ca6af'
-  },
+        container: {
+          border: "none",
+          borderRadius: "4px",
+          boxShadow: "0px 3px 1px 1px #000"
+        },
 
-  footer: {
-    background: '#f8f9fa',
-    borderStyleInput: '1px solid #e1e4e8',
-    borderInputSelected: '#1976d2',
-    backgroundReply: 'rgba(0, 0, 0, 0.08)'
-  },
+        header: {
+          background: "#fff",
+          colorRoomName: "#0a0a0a",
+          colorRoomInfo: "#9ca6af"
+        },
 
-  content: {
-    background: '#f8f9fa'
-  },
+        footer: {
+          background: "#f8f9fa",
+          borderStyleInput: "1px solid #e1e4e8",
+          borderInputSelected: "#1976d2",
+          backgroundReply: "rgba(0, 0, 0, 0.08)"
+        },
 
-  sidemenu: {
-    background: '#fff',
-    backgroundHover: '#f6f6f6',
-    backgroundActive: '#e5effa',
-    colorActive: '#1976d2',
-    borderColorSearch: '#e1e5e8'
-  },
+        content: {
+          background: "#f8f9fa"
+        },
 
-  dropdown: {
-    background: '#fff',
-    backgroundHover: '#f6f6f6'
-  },
+        sidemenu: {
+          background: "#fff",
+          backgroundHover: "#f6f6f6",
+          backgroundActive: "#e5effa",
+          colorActive: "#1976d2",
+          borderColorSearch: "#e1e5e8"
+        },
 
-  message: {
-    background: '#fff',
-    backgroundMe: '#ccf2cf',
-    color: '#0a0a0a',
-    colorStarted: '#9ca6af',
-    backgroundDeleted: '#dadfe2',
-    colorDeleted: '#757e85',
-    colorUsername: '#9ca6af',
-    colorTimestamp: '#828c94',
-    backgroundDate: '#e5effa',
-    colorDate: '#505a62',
-    backgroundReply: 'rgba(0, 0, 0, 0.08)',
-    colorReplyUsername: '#0a0a0a',
-    colorReply: '#6e6e6e',
-    backgroundImage: '#ddd',
-    colorNewMessages: '#1976d2',
-    backgroundReaction: '#eee',
-    borderStyleReaction: '1px solid #eee',
-    backgroundReactionHover: '#fff',
-    borderStyleReactionHover: '1px solid #ddd',
-    colorReactionCounter: '#0a0a0a',
-    backgroundReactionMe: '#cfecf5',
-    borderStyleReactionMe: '1px solid #3b98b8',
-    backgroundReactionHoverMe: '#cfecf5',
-    borderStyleReactionHoverMe: '1px solid #3b98b8',
-    colorReactionCounterMe: '#0b59b3'
-  },
+        dropdown: {
+          background: "#fff",
+          backgroundHover: "#f6f6f6"
+        },
 
-  markdown: {
-    background: 'rgba(239, 239, 239, 0.7)',
-    border: 'rgba(212, 212, 212, 0.9)',
-    color: '#e01e5a',
-    colorMulti: '#0a0a0a'
-  },
+        message: {
+          background: "#fff",
+          backgroundMe: "#ccf2cf",
+          color: "#0a0a0a",
+          colorStarted: "#9ca6af",
+          backgroundDeleted: "#dadfe2",
+          colorDeleted: "#757e85",
+          colorUsername: "#9ca6af",
+          colorTimestamp: "#828c94",
+          backgroundDate: "#e5effa",
+          colorDate: "#505a62",
+          backgroundReply: "rgba(0, 0, 0, 0.08)",
+          colorReplyUsername: "#0a0a0a",
+          colorReply: "#6e6e6e",
+          backgroundImage: "#ddd",
+          colorNewMessages: "#1976d2",
+          backgroundReaction: "#eee",
+          borderStyleReaction: "1px solid #eee",
+          backgroundReactionHover: "#fff",
+          borderStyleReactionHover: "1px solid #ddd",
+          colorReactionCounter: "#0a0a0a",
+          backgroundReactionMe: "#cfecf5",
+          borderStyleReactionMe: "1px solid #3b98b8",
+          backgroundReactionHoverMe: "#cfecf5",
+          borderStyleReactionHoverMe: "1px solid #3b98b8",
+          colorReactionCounterMe: "#0b59b3"
+        },
 
-  room: {
-    colorUsername: '#0a0a0a',
-    colorMessage: '#67717a',
-    colorTimestamp: '#a2aeb8',
-    colorStateOnline: '#4caf50',
-    colorStateOffline: '#ccc'
-  },
+        markdown: {
+          background: "rgba(239, 239, 239, 0.7)",
+          border: "rgba(212, 212, 212, 0.9)",
+          color: "#e01e5a",
+          colorMulti: "#0a0a0a"
+        },
 
-  emoji: {
-    background: '#fff'
-  },
+        room: {
+          colorUsername: "#0a0a0a",
+          colorMessage: "#67717a",
+          colorTimestamp: "#a2aeb8",
+          colorStateOnline: "#4caf50",
+          colorStateOffline: "#ccc"
+        },
 
-  icons: {
-    search: '#9ca6af',
-    add: '#1976d2',
-    toggle: '#0a0a0a',
-    menu: '#0a0a0a',
-    close: '#9ca6af',
-    closeImage: '#fff',
-    file: '#1976d2',
-    paperclip: '#1976d2',
-    closeOutline: '#000',
-    send: '#1976d2',
-    sendDisabled: '#9ca6af',
-    emoji: '#1976d2',
-    emojiReaction: '#828c94',
-    document: '#1976d2',
-    pencil: '#9e9e9e',
-    checkmark: '#0696c7',
-    eye: '#fff',
-    dropdownMessage: '#fff',
-    dropdownMessageBackground: 'rgba(0, 0, 0, 0.25)',
-    dropdownScroll: '#0a0a0a'
-  }}, //css    
-      }
-    }
+        emoji: {
+          background: "#fff"
+        },
+
+        icons: {
+          search: "#9ca6af",
+          add: "#1976d2",
+          toggle: "#0a0a0a",
+          menu: "#0a0a0a",
+          close: "#9ca6af",
+          closeImage: "#fff",
+          file: "#1976d2",
+          paperclip: "#1976d2",
+          closeOutline: "#000",
+          send: "#1976d2",
+          sendDisabled: "#9ca6af",
+          emoji: "#1976d2",
+          emojiReaction: "#828c94",
+          document: "#1976d2",
+          pencil: "#9e9e9e",
+          checkmark: "#0696c7",
+          eye: "#fff",
+          dropdownMessage: "#fff",
+          dropdownMessageBackground: "rgba(0, 0, 0, 0.25)",
+          dropdownScroll: "#0a0a0a"
+        }
+      } //css
+    };
   }
+};
 </script>
 

@@ -1,5 +1,5 @@
 <template>
-    <v-app-bar app clipped-left dense flat color="blue lighten-3">
+    <v-app-bar app clipped-right dense flat color="blue lighten-3">
     </v-app-bar>
 </template>
 
