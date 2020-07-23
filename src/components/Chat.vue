@@ -1,11 +1,11 @@
 <template>
   <chat-window
     height="calc(100vh - 80px)"
+    :theme="theme"
     :currentUserId="currentUserId"
     :rooms="rooms"
     :messages="messages"
-    :showemojis="showEmojis"
-    :messageactions="messageActions"
+    :menuActions="menuActions"
   />
 </template>
 
@@ -17,15 +17,98 @@ export default {
   components: {
     ChatWindow
   },
+  props: ["theme"], //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
   data() {
     return {
-      currentUserId: 1234, //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
-      rooms: [], //tekuce sobe -> stavi u seperate js file
+      currentUserId: 4321,
+      perPage: 20,
+      rooms: [
+        {
+          roomId: 1,
+          roomName: "Prijava završnog - doc. dr. sc. Darko Etinger",
+          lastMessage: {
+            content: "Da... Mislim da je ovo dobro.",
+            sender_id: 1234,
+            username: "John Doe",
+            timestamp: "10:20",
+            date: 123242424,
+            seen: false,
+            new: true
+          },
+          users: [
+            {
+              _id: 1234,
+              username: "John Doe",
+              status: {
+                state: "offline",
+                last_changed: "today, 14:30"
+              }
+            },
+            {
+              _id: 4321,
+              username: "John Snow",
+              status: {
+                state: "offline",
+                last_changed: "14 July, 20:00"
+              }
+            }
+          ],
+          typingUsers: [4321]
+        }
+      ], //tekuce sobe -> stavi u seperate js file
       loadingRooms: true, //spinner icon dok se ucitava soba
-      roomId: ["pepe"], // moze string, a i boolean
-      messages: [], //poruke -> stavi u seperate js file
+      roomId: [1], // moze string, a i boolean
+      messages: [
+        {
+          _id: 7890,
+          content: "Idemo?",
+          sender_id: 1234,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false,
+          reactions: {
+            smile: [4321]
+          }
+        },
+        {
+          _id: 7891,
+          content: "Ideja je da radimo ovako i ovako.",
+          sender_id: 4321,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false
+        },
+        {
+          _id: 7892,
+          content: "S ovime.",
+          sender_id: 4321,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false
+        },
+        {
+          _id: 7893,
+          content: "Da... Mislim da je tako dobro.",
+          sender_id: 1234,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false
+        }
+      ], //poruke -> stavi u seperate js file
       roomMessage: {}, //default textarea value, npr. Pozdrav!
-      messagesLoaded: false, //nesto o skrolanju gore
+      messagesLoaded: true, //nesto o skrolanju gore
       menuActions: [
         {
           //sluzi za gumb na tri veritkalne tocke, ako ces menuActionHandler event za custom akciju
@@ -184,7 +267,9 @@ export default {
         }
       } //css
     };
-  }
+  },
+  mounted() {},
+  methods: {}
 };
 </script>
 
