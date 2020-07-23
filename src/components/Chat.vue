@@ -15,7 +15,7 @@ import "vue-advanced-chat/dist/vue-advanced-chat.css";
 
 export default {
   components: {
-    ChatWindow
+    ChatWindow,
   },
   props: ["theme"], //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
   data() {
@@ -33,7 +33,7 @@ export default {
             timestamp: "10:20",
             date: 123242424,
             seen: false,
-            new: true
+            new: false,
           },
           users: [
             {
@@ -41,27 +41,70 @@ export default {
               username: "John Doe",
               status: {
                 state: "offline",
-                last_changed: "today, 14:30"
-              }
+                last_changed: "today, 14:30",
+              },
             },
             {
               _id: 4321,
               username: "John Snow",
               status: {
                 state: "offline",
-                last_changed: "14 July, 20:00"
-              }
-            }
+                last_changed: "14 July, 20:00",
+              },
+            },
           ],
-          typingUsers: [4321]
-        }
+          typingUsers: [4321],
+        },
+        {
+          roomId: 2,
+          roomName: "Prijava završnog - doc. dr. sc. Nikola Tanković",
+          lastMessage: {
+            content: "Ok!",
+            sender_id: 1235,
+            username: "John Doe",
+            timestamp: "9:38",
+            date: 123242424,
+            seen: true,
+            new: false,
+          },
+          users: [
+            {
+              _id: 1235,
+              username: "John Doe",
+              status: {
+                state: "offline",
+                last_changed: "yesterday, 11:00",
+              },
+            },
+            {
+              _id: 4321,
+              username: "John Snow",
+              status: {
+                state: "offline",
+                last_changed: "14 July, 20:00",
+              },
+            },
+          ],
+          typingUsers: [4321],
+        },
       ], //tekuce sobe -> stavi u seperate js file
-      loadingRooms: true, //spinner icon dok se ucitava soba
-      roomId: [1], // moze string, a i boolean
+      singleRoom: false,
+      roomId: 1,
       messages: [
         {
           _id: 7890,
-          content: "Idemo?",
+          content: "Hej! Evo tebe opet.",
+          sender_id: 1234,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false,
+        },
+        {
+          _id: 7820,
+          content: "Reci mi šta treba ili klikni na batun.",
           sender_id: 1234,
           username: "John Doe",
           date: "13 November",
@@ -70,42 +113,90 @@ export default {
           disable_actions: false,
           disable_reactions: false,
           reactions: {
-            smile: [4321]
-          }
+            smile: [4321],
+            joy: [4321],
+          },
         },
         {
-          _id: 7891,
-          content: "Ideja je da radimo ovako i ovako.",
+          _id: 7191,
+          content: "Želim prijaviti završni.",
           sender_id: 4321,
           username: "John Doe",
           date: "13 November",
           timestamp: "10:20",
           seen: true,
           disable_actions: false,
-          disable_reactions: false
+          disable_reactions: false,
         },
         {
-          _id: 7892,
-          content: "S ovime.",
-          sender_id: 4321,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false
-        },
-        {
-          _id: 7893,
-          content: "Da... Mislim da je tako dobro.",
+          _id: 7293,
+          content: "Super. Započinjem proces prijave završnog rada.",
           sender_id: 1234,
           username: "John Doe",
           date: "13 November",
           timestamp: "10:20",
           seen: true,
           disable_actions: false,
-          disable_reactions: false
-        }
+          disable_reactions: false,
+        },
+        {
+          _id: 7393,
+          content:
+            "1. Odaberi status studenta - je li ti ovo prvi upis? Strani državljanin si? Ponavljač?",
+          sender_id: 1234,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false,
+        },
+        {
+          _id: 7493,
+          content: "2. Odaberi studijski program",
+          sender_id: 1234,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false,
+        },
+        {
+          _id: 7593,
+          content:
+            "3. Ako već nisi, uplati upisninu, ako jesi, uploadaj mi potvrdu.",
+          sender_id: 1234,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false,
+        },
+        {
+          _id: 7693,
+          content:
+            "4. Slikaj se našom ful kul aplikacijom i uploadaj ju za iksicu.",
+          sender_id: 1234,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false,
+        },
+        {
+          _id: 7793,
+          content: "5. Treba mi ispunjeni ugovor o studiranju. Hvala!",
+          sender_id: 1234,
+          username: "John Doe",
+          date: "13 November",
+          timestamp: "10:20",
+          seen: true,
+          disable_actions: false,
+          disable_reactions: false,
+        },
       ], //poruke -> stavi u seperate js file
       roomMessage: {}, //default textarea value, npr. Pozdrav!
       messagesLoaded: true, //nesto o skrolanju gore
@@ -113,36 +204,36 @@ export default {
         {
           //sluzi za gumb na tri veritkalne tocke, ako ces menuActionHandler event za custom akciju
           name: "inviteUser",
-          title: "Invite User"
+          title: "Invite User",
         },
         {
           name: "removeUser",
-          title: "Remove User"
+          title: "Remove User",
         },
         {
           name: "deleteRoom",
-          title: "Delete Room"
-        }
+          title: "Delete Room",
+        },
       ],
       messageActions: [
         {
           name: "replyMessage",
-          title: "Reply"
+          title: "Reply",
         },
         {
           name: "editMessage",
           title: "Edit Message",
-          onlyMe: true
+          onlyMe: true,
         },
         {
           name: "deleteMessage",
           title: "Delete Message",
-          onlyMe: true
-        }
+          onlyMe: true,
+        },
       ],
       showEmojis: true,
       showFiles: true,
-      showrReactionEmojis: true,
+      showReactionEmojis: true,
       showAddRoom: true, //ne znam jos
       textMessages: {}, //ne znam ni ovo, check it out https://github.com/antoine92190/vue-advanced-chat
       textFormatting: true, //bold, italic,..., check it out https://github.com/antoine92190/vue-advanced-chat
@@ -157,30 +248,30 @@ export default {
           colorCaret: "#1976d2",
           colorSpinner: "#333",
           borderStyle: "1px solid #e1e4e8",
-          backgroundScrollIcon: "#fff"
+          backgroundScrollIcon: "#fff",
         },
 
         container: {
           border: "none",
           borderRadius: "4px",
-          boxShadow: "0px 3px 1px 1px #000"
+          boxShadow: "0px 3px 1px 1px #000",
         },
 
         header: {
           background: "#fff",
           colorRoomName: "#0a0a0a",
-          colorRoomInfo: "#9ca6af"
+          colorRoomInfo: "#9ca6af",
         },
 
         footer: {
           background: "#f8f9fa",
           borderStyleInput: "1px solid #e1e4e8",
           borderInputSelected: "#1976d2",
-          backgroundReply: "rgba(0, 0, 0, 0.08)"
+          backgroundReply: "rgba(0, 0, 0, 0.08)",
         },
 
         content: {
-          background: "#f8f9fa"
+          background: "#f8f9fa",
         },
 
         sidemenu: {
@@ -188,12 +279,12 @@ export default {
           backgroundHover: "#f6f6f6",
           backgroundActive: "#e5effa",
           colorActive: "#1976d2",
-          borderColorSearch: "#e1e5e8"
+          borderColorSearch: "#e1e5e8",
         },
 
         dropdown: {
           background: "#fff",
-          backgroundHover: "#f6f6f6"
+          backgroundHover: "#f6f6f6",
         },
 
         message: {
@@ -221,14 +312,14 @@ export default {
           borderStyleReactionMe: "1px solid #3b98b8",
           backgroundReactionHoverMe: "#cfecf5",
           borderStyleReactionHoverMe: "1px solid #3b98b8",
-          colorReactionCounterMe: "#0b59b3"
+          colorReactionCounterMe: "#0b59b3",
         },
 
         markdown: {
           background: "rgba(239, 239, 239, 0.7)",
           border: "rgba(212, 212, 212, 0.9)",
           color: "#e01e5a",
-          colorMulti: "#0a0a0a"
+          colorMulti: "#0a0a0a",
         },
 
         room: {
@@ -236,11 +327,11 @@ export default {
           colorMessage: "#67717a",
           colorTimestamp: "#a2aeb8",
           colorStateOnline: "#4caf50",
-          colorStateOffline: "#ccc"
+          colorStateOffline: "#ccc",
         },
 
         emoji: {
-          background: "#fff"
+          background: "#fff",
         },
 
         icons: {
@@ -263,13 +354,13 @@ export default {
           eye: "#fff",
           dropdownMessage: "#fff",
           dropdownMessageBackground: "rgba(0, 0, 0, 0.25)",
-          dropdownScroll: "#0a0a0a"
-        }
-      } //css
+          dropdownScroll: "#0a0a0a",
+        },
+      }, //css
     };
   },
   mounted() {},
-  methods: {}
+  methods: {},
 };
 </script>
 
