@@ -1,15 +1,14 @@
+import json
 from app import app
-from flask import jsonify, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_pymongo import PyMongo
-from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
-from flask_jwt_extended import create_access_token
+from bson import BSON, json_util
+# from flask_bcrypt import Bcrypt
+# from flask_jwt_extended import JWTManager
+# from flask_jwt_extended import create_access_token
 
 mongo = PyMongo(app)
-bcrypt = Bcrypt(app)
-jwt = JWTManager(app)
-
 CORS(app, resources={r'/*': {'origins': '*'}})
 
 @app.route('/')
@@ -21,4 +20,4 @@ def getRefs():
     usersRef = mongo.db.users
     roomsRef = mongo.db.chatRooms
     filesRef = mongo.db.files
-    return 'got the refs'
+    return json.dumps(mongo.db.chatRooms.find_one(), sort_keys=True, indent=4, default=json_util.default)

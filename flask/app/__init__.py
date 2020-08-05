@@ -1,31 +1,11 @@
-
 from flask import Flask
-from flask_cors import CORS
-from flask_pymongo import PyMongo
-from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
-from flask_jwt_extended import create_access_token
-from app import dbroutes
+from config import Config
 
 app = Flask(__name__)
 
-app.config['MONGO_DBNAME'] = 'fipubot'
-app.config['MONGO_URI'] = 'mongodb+srv://admin:<F1pub0t!>@fipubot.mfio0.mongodb.net/fipubot?retryWrites=true&w=majority'
-app.config['JWT_SECRET_KEY'] = 'secret'
+app.config.from_object('config.Config')
 
-mongo = PyMongo(app)
-bcrypt = Bcrypt(app)
-jwt = JWTManager(app)
-
-CORS(app, resources={r'/*': {'origins': '*'}})
-
-if __name__ == '__main__':
-    app.run()
-
-#getMessages
-#getRooms
-#getUsers
-#getFiles
+from app import dbroutes, bpmnroutes
 
 # SHOPPING_LIST = [
 #     {
