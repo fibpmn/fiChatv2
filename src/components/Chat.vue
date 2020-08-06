@@ -12,6 +12,7 @@
 <script>
 import ChatWindow from "vue-advanced-chat";
 import "vue-advanced-chat/dist/vue-advanced-chat.css";
+import { Rooms, Users, Files } from '@/services'
 
 export default {
   components: {
@@ -20,186 +21,9 @@ export default {
   props: ["theme"], //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
   data() {
     return {
-      currentUserId: 4321,
-      perPage: 20,
-      rooms: [
-        {
-          roomId: 1,
-          roomName: "Prijava završnog - doc. dr. sc. Darko Etinger",
-          lastMessage: {
-            content: "Da... Mislim da je ovo dobro.",
-            sender_id: 1234,
-            username: "John Doe",
-            timestamp: "10:20",
-            date: 123242424,
-            seen: false,
-            new: false,
-          },
-          users: [
-            {
-              _id: 1234,
-              username: "John Doe",
-              status: {
-                state: "offline",
-                last_changed: "today, 14:30",
-              },
-            },
-            {
-              _id: 4321,
-              username: "John Snow",
-              status: {
-                state: "offline",
-                last_changed: "14 July, 20:00",
-              },
-            },
-          ],
-          typingUsers: [4321],
-        },
-        {
-          roomId: 2,
-          roomName: "Prijava završnog - doc. dr. sc. Nikola Tanković",
-          lastMessage: {
-            content: "Ok!",
-            sender_id: 1235,
-            username: "John Doe",
-            timestamp: "9:38",
-            date: 123242424,
-            seen: true,
-            new: false,
-          },
-          users: [
-            {
-              _id: 1235,
-              username: "John Doe",
-              status: {
-                state: "offline",
-                last_changed: "yesterday, 11:00",
-              },
-            },
-            {
-              _id: 4321,
-              username: "John Snow",
-              status: {
-                state: "offline",
-                last_changed: "14 July, 20:00",
-              },
-            },
-          ],
-          typingUsers: [4321],
-        },
-      ], //tekuce sobe -> stavi u seperate js file
-      singleRoom: false,
-      roomId: 1,
-      messages: [
-        {
-          _id: 7890,
-          content: "Hej! Evo tebe opet.",
-          sender_id: 1234,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false,
-        },
-        {
-          _id: 7820,
-          content: "Reci mi šta treba ili klikni na batun.",
-          sender_id: 1234,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false,
-          reactions: {
-            smile: [4321],
-            joy: [4321],
-          },
-        },
-        {
-          _id: 7191,
-          content: "Želim prijaviti završni.",
-          sender_id: 4321,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false,
-        },
-        {
-          _id: 7293,
-          content: "Super. Započinjem proces prijave završnog rada.",
-          sender_id: 1234,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false,
-        },
-        {
-          _id: 7393,
-          content:
-            "1. Odaberi status studenta - je li ti ovo prvi upis? Strani državljanin si? Ponavljač?",
-          sender_id: 1234,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false,
-        },
-        {
-          _id: 7493,
-          content: "2. Odaberi studijski program",
-          sender_id: 1234,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false,
-        },
-        {
-          _id: 7593,
-          content:
-            "3. Ako već nisi, uplati upisninu, ako jesi, uploadaj mi potvrdu.",
-          sender_id: 1234,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false,
-        },
-        {
-          _id: 7693,
-          content:
-            "4. Slikaj se našom ful kul aplikacijom i uploadaj ju za iksicu.",
-          sender_id: 1234,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false,
-        },
-        {
-          _id: 7793,
-          content: "5. Treba mi ispunjeni ugovor o studiranju. Hvala!",
-          sender_id: 1234,
-          username: "John Doe",
-          date: "13 November",
-          timestamp: "10:20",
-          seen: true,
-          disable_actions: false,
-          disable_reactions: false,
-        },
-      ], //poruke -> stavi u seperate js file
-      roomMessage: {}, //default textarea value, npr. Pozdrav!
-      messagesLoaded: true, //nesto o skrolanju gore
+        rooms: [],
+        messages: [],
+      currentUserId: 1,
       menuActions: [
         {
           //sluzi za gumb na tri veritkalne tocke, ako ces menuActionHandler event za custom akciju
@@ -231,15 +55,6 @@ export default {
           onlyMe: true,
         },
       ],
-      showEmojis: true,
-      showFiles: true,
-      showReactionEmojis: true,
-      showAddRoom: true, //ne znam jos
-      textMessages: {}, //ne znam ni ovo, check it out https://github.com/antoine92190/vue-advanced-chat
-      textFormatting: true, //bold, italic,..., check it out https://github.com/antoine92190/vue-advanced-chat
-      responsiveBreakpoint: 900, //kad se smanji viewport, 900 je default
-      //theme: light, //light je default
-
       styles: {
         general: {
           color: "#0a0a0a",
@@ -359,8 +174,34 @@ export default {
       }, //css
     };
   },
-  mounted() {},
-  methods: {},
+  mounted() {
+    this.fetchRooms(),
+    this.fetchUsers(),
+    this.fetchFiles()
+  },
+  methods: {
+    fetchRooms() {
+      Rooms.getAll()
+      .then(response => {
+        let data = response.data
+        return data
+      })
+    },
+    fetchUsers() {
+      Users.getAll()
+      .then(response => {
+        let data = response.data
+        return data
+      })
+    }, 
+    fetchFiles() {
+      Files.getAll()
+      .then(response => {
+        let data = response.data
+        return data
+      })
+    },
+  },
 };
 </script>
 
