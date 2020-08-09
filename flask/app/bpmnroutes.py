@@ -6,6 +6,7 @@ import requests
 import json
 import time
 from bson import BSON, json_util
+from flask_cors import cross_origin
 
 mongo = PyMongo(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
@@ -829,3 +830,9 @@ def extend_lock(self, taskid, workerId):
 #     pepe.get_external_task(taskid)
 #     return jsonify(pepe)
     # return pepe.get_external_task(taskid)
+
+@app.route('/api/uzmiVarijable', methods=['POST'])
+@cross_origin()
+def uzmi_varijable():
+    varijable = request.get_json()
+    return varijable

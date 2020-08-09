@@ -1,15 +1,14 @@
 import json
 from app import app
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 from flask_pymongo import PyMongo
 from bson import BSON, json_util
+from flask_cors import cross_origin
 # from flask_bcrypt import Bcrypt
 # from flask_jwt_extended import JWTManager
 # from flask_jwt_extended import create_access_token
 
 mongo = PyMongo(app)
-CORS(app, resources={r'/*': {'origins': '*'}})
 
 @app.route('/')
 def index():
