@@ -502,6 +502,19 @@ def unclaim_task(id):
         error = jsonify(response.text, response.status_code)
         return error
 
+def set_asignee(id, userId):
+    endpoint = url + "/task/" + id + "/assignee"
+    body = {
+        "userId": userId
+    }
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 204):
+        return jsonify("Request successful", response.status_code)
+    else:
+        error = jsonify(response.text, response.status_code)
+        return error
+
+
 # def complete_task(id):                                Mozda rijesiti vanjskom formom, ja se iskreno nadam
 #     endpoint = url + "/task/" + id + "/complete"
 #     body = {
@@ -530,7 +543,7 @@ def unclaim_task(id):
 #         error = jsonify(response.text, response.status_code)
 #         return error
 
-def get_task_formkey(id):
+def get_task_formkey(id): # fali path za spajanje forme
     endpoint = url + "/task/" + id + "/form"
     response = requests.request("GET", endpoint)
     if(response.status_code == 200):
@@ -538,59 +551,110 @@ def get_task_formkey(id):
     else:
         return jsonify(response.text, response.status_code)
 
+def get_deployed_form(id):
+    endpoint = url + "/task/" + id + "/deployed-form"
+    response = requests.request("GET", endpoint)
+    if(response.status_code == 200):
+        return jsonify(response.text)
+    elif(response.status_code == 400):
+        return jsonify(response.text, response.status_code)
+    elif(response.status_code == 403):
+        return jsonify(response.text, response.status_code)    
+    else:
+        return jsonify(response.text, response.status_code)
+
+def submit_form(id, variables): #nedovrseno
+    endpoint = url + "/task/" + id + "/submit-form"
+    body = {
+        "variables": variables
+    }
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 204):
+        return jsonify(response.text)
+    elif(response.status_code == 400):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def get_task_form_variables(id, deserializeValues): 
+    endpoint = url + "/task/" + id + "/form-variables"
+    payload = {
+        #"variableNames": variableNames, #moze i bez toga, struktura podataka je lista  variableNames,
+        "deserializeValues": deserializeValues
+    }
+    response = requests.request("GET", endpoint, params=payload)
+    if(response.status_code == 200):
+        return jsonify(response.text)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def get_task_variable(id, varName, deserializeValue):
+    endpoint = url + "/task/" + id + "/variables/" + varName
+    payload = {
+        "deserializeValue": deserializeValue
+    }
+    response = requests.request("GET", endpoint, json=payload)
+    if(response.status_code == 200):
+        return jsonify(response.text)
+    elif(response.status_code == 404):
+        return jsonify(response.text, response.status_code)  
+    else:
+        return jsonify(response.text, response.status_code)    
+
+def get_task_variables(id, deserializeValues):
+    endpoint = url + "/task/" + id + "/variables"
+    payload = {
+        "deserializeValues": deserializeValues
+    }
+    response = requests.request("GET", endpoint, params=payload)
+    if(response.status_code == 200):
+        return jsonify(response.text)
+    else:
+        return jsonify(response.text, response.status_code)
+
+
 ###### TESTIRANJE
 @app.route("/api", methods=["GET", "POST", "DELETE", "PUT"])
-# def nesto29():
-#     calls = claim_task("7aa6d274-d99c-11ea-b794-60f262e99a90","ToniID")
-#     return calls
-# def nesto30():
-#     calls = unclaim_task("7aa6d274-d99c-11ea-b794-60f262e99a90")
-#     return calls
+
 # def nesto31():
 #     calls = complete_task("f6ea7551-da54-11ea-8fe7-60f262e99a90")
 #     return calls
-def nesto32():
-    calls = get_task_formkey("8d36fe1f-da58-11ea-8fe7-60f262e99a90")
+# def nesto32():
+#     calls = get_task_formkey("8d36fe1f-da58-11ea-8fe7-60f262e99a90")
+#     return calls
+# def nesto33():
+#     calls = get_deployed_form("8d36fe1f-da58-11ea-8fe7-60f262e99a90")
+#     return calls
+# def nesto34():
+#    calls = submit_form("id", "varijable")
+#    return calls
+# def nesto35():
+#     calls = get_task_form_variables("f7b7f6ba-da62-11ea-8fe7-60f262e99a90", True)
+#     return calls
+# def nesto36():
+#     calls = set_asignee("f7b7f6ba-da62-11ea-8fe7-60f262e99a90", "ToniID")
+#     return calls
+# def nesto37():
+#     calls = get_task_variable("7aa6d274-d99c-11ea-b794-60f262e99a90", "Odgovor", True)
+#     return calls
+def nesto38():
+    calls = get_task_variables("7aa6d274-d99c-11ea-b794-60f262e99a90", True)
     return calls
 
-#complete task
-#@app.route("/api/task/<>", methods=["GET", "POST", "DELETE", "PUT"])
-
-#get task form key
-#post task form
-#get deployed form
-#set task assignee
-#update task
-
-
-#get task variable
-#@app.route("/api/task/variables/<>", methods=["GET", "POST", "DELETE", "PUT"])
 #get task variables list 
-#@app.route("/api/task/variables/<>", methods=["GET", "POST", "DELETE", "PUT"])
 #get task variable binary
-#@app.route("/api/task/variables/<>", methods=["GET", "POST", "DELETE", "PUT"])
 #post task variable binary
-#@app.route("/api/task/variables/<>", methods=["GET", "POST", "DELETE", "PUT"])
 #delete task variable binary
-#@app.route("/api/task/variables/<>", methods=["GET", "POST", "DELETE", "PUT"])
 #update task variable
-#@app.route("/api/task/variables/<>", methods=["GET", "POST", "DELETE", "PUT"])
+
 
 #get external task
-#@app.route("/api/external-task/<>", methods=["GET", "POST"])
 #get external task list
-#@app.route("/api/external-task/<>", methods=["GET", "POST"])
 #fetch and lock
-#@app.route("/api/external-task/<>", methods=["GET", "POST"])
 #complete external task
-#@app.route("/api/external-task/<>", methods=["GET", "POST"])
 #handle external task error
-#@app.route("/api/external-task/<>", methods=["GET", "POST"])
 
-#@app.route("/api/task/<>", methods=["GET", "POST", "DELETE", "PUT"])
-#post task
-#@app.route("/api/task/<>", methods=["GET", "POST", "DELETE", "PUT"])
-#delete task
+
 
 
 # def nesto():
@@ -684,7 +748,12 @@ def nesto32():
 # def nesto28(): #not tested
 #     calls = get_task_list("milijarda parametara")
 #     return calls
-
+# def nesto29():
+#     calls = claim_task("7aa6d274-d99c-11ea-b794-60f262e99a90","ToniID")
+#     return calls
+# def nesto30():
+#     calls = unclaim_task("7aa6d274-d99c-11ea-b794-60f262e99a90")
+#     return calls
 
 
 
