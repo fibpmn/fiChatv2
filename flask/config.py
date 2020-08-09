@@ -7,6 +7,7 @@ load_dotenv(path.join(basedir, '.env'))
 class Config(object):
     MONGO_DBNAME = "fipubot"
     MONGO_URI = environ.get('MONGO_URI')
+    JSONIFY_PRETTYPRINT_REGULAR = True
     #JWT_SECRET_KEY = environ.get('JWT_SECRET_KEY')
 
 class ProdConfig(object):
