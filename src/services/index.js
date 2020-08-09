@@ -6,23 +6,15 @@ let Service = axios.create({
 })
 
 let Rooms = {
-    getAll(){
-        return Service.get('/api/getRooms')
-    }
-    /*
     async getAll(){
-        let response = await Service.get('/api/getRooms)
-        let data = response.data
-        data = data.map(doc => {
+        let response = await Service.get('/api/getRooms')
+        return response.data.map(doc => {
             return {
-                id: doc.id,
+                id: doc._id,
                 url: doc.source
-                itd itd
             };
         });
-        return data
     }
-    */
 }
 
 let Users = {
