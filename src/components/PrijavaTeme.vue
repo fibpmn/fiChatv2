@@ -79,6 +79,8 @@ export default {
       naslov: "",
       sazetak: "",
       mentori: [],
+      mentor1: "",
+      mentor2: "",
     };
   },
   methods: {
@@ -94,7 +96,7 @@ export default {
               type: "string",
             },
             {
-              value: this.mentor1,
+              value: this.mentor2,
               type: "string",
             },
           ],

@@ -7,119 +7,100 @@ import json
 import time
 from bson import BSON, json_util
 from flask_cors import cross_origin
-
 mongo = PyMongo(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
-#Trebat ce nam jsonify za flask
-global engine
-engine = True
+
 global url 
 url = 'http://localhost:8080/engine-rest' 
-global workerId
 
-#napisi funkciju za deployment na bpmn
-#daj parametre koji su ti potrebni za topic
-#ova funkcija mora nesto vratiti, u vecini slucajeva je json objekt
+#make handle_response_codes function
 
 def get_process_definition(id):
-    endpoint = url + "/process-definition/" + str(id)
+    endpoint = url + "/process-definition/" + id
     response = requests.request("GET", endpoint)
     if(response.status_code == 200):
-        data = json.loads(response.text)
-        return data
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def get_process_definition_list(key, status, sortBy, sortOrder):
     endpoint = url + "/process-definition"
-    payload = {
+    params = {
         "key": key,
         "active": status,
         "sortBy": sortBy,
         "sortOrder": sortOrder
     }
-    response = requests.request("GET", endpoint, params=payload)
+    response = requests.request("GET", endpoint, params=params)
     if(response.status_code == 200):
-        data = json.loads(response.text)
-        return data
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def delete_process_definition_id(id):
     endpoint = url + "/process-definition/" + id
-    payload = {
+    params = {
         "cascade": True
     } 
-    response = requests.request("DELETE", endpoint, params=payload)
+    response = requests.request("DELETE", endpoint, params=params)
     if(response.status_code == 200):
-        return {"Request successful": response.status_code}
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def delete_process_definition_key(key):
     endpoint = url + "/process-definition/key/" + key + "/delete"
-    payload = {
+    params = {
         "cascade": True
     } 
-    response = requests.request("DELETE", endpoint, params=payload)
+    response = requests.request("DELETE", endpoint, params=params)
     if(response.status_code == 204):
-        return {"Request successful": response.status_code}
+        return jsonify(response.text, response.status_code)
     elif(response.status_code == 403):
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def get_deployment(id):
     endpoint = url + "/deployment/" + id
     response = requests.request("GET", endpoint)
     if(response.status_code == 200):
-        data = json.loads(response.text)
-        return data
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def get_deployment_list(name, status, sortBy, sortOrder):
     endpoint = url + "/deployment"
-    payload = {
+    params = {
         "name": name,
         "active": status,
         "sortBy": sortBy,
         "sortOrder": sortOrder
     }
-    response = requests.request("GET", endpoint, params=payload)
+    response = requests.request("GET", endpoint, params=params)
     if(response.status_code == 200):
-        data = json.loads(response.text)
-        return data
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def process_deploy(name, file):
     endpoint = url + "/deployment/create"
-    payload = {
+    params = {
         "deployment-name": name,
     }
     files = {"file": open(file, 'rb')}
-    response = requests.request("POST", endpoint, params=payload, files=files)
+    response = requests.request("POST", endpoint, params=params, files=files)
     if(response.status_code == 200):
-        data = json.loads(response.text)
-        return data
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def delete_deployment(id):
     endpoint = url + "/deployment/" + id
-    payload = {
+    params = {
         "cascade": True
     }
-    response = requests.request("DELETE", endpoint, params=payload)
+    response = requests.request("DELETE", endpoint, params=params)
     if(response.status_code == 204):
         return "Request succesfull"
     else:
@@ -128,20 +109,18 @@ def delete_deployment(id):
 
 def get_process_instance(id): 
     endpoint = url + '/process-instance/' + id
-    payload = {
+    params = {
         "id": id
     }
-    response = requests.request("GET", endpoint, params=payload)
+    response = requests.request("GET", endpoint, params=params)
     if(response.status_code == 200):
-        data = json.loads(response.text)
-        return data
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def get_process_instances_list(processDefinitionKey, active, sortBy, sortOrder):
     endpoint = url + "/process-instance"
-    payload = {
+    params = {
         #"processDefinitionId": processDefinitionId,
         "processDefinitionKey": processDefinitionKey,
         #"deploymentId": deploymentId,
@@ -151,19 +130,14 @@ def get_process_instances_list(processDefinitionKey, active, sortBy, sortOrder):
         "sortOrder": sortOrder,
         #"maxResults": maxResults,
     }
-    response = requests.request("GET", endpoint, params=payload)
+    response = requests.request("GET", endpoint, params=params)
     if(response.status_code == 200):
-        data = json.loads(response.text)
-        return data
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def start_process_instance_id(id, businessKey, withVariablesInReturn):
     endpoint = url + "/process-definition/" + id + "/start"
-    payload = {
-        "id": id,
-    }
     body = {
         # "variables": {
         #     "value": value
@@ -172,25 +146,18 @@ def start_process_instance_id(id, businessKey, withVariablesInReturn):
         "businessKey": businessKey,
         "withVariablesInReturn": withVariablesInReturn #true
     }
-    response = requests.request("POST", endpoint, params=payload, json=body)
+    response = requests.request("POST", endpoint, json=body)
     if(response.status_code == 200):
-        data1 = json.loads(response.text), response.status_code
-        return data1
+        return jsonify(response.text, response.status_code)
     elif(response.status_code == 400):
-        data1 = json.loads(response.text), response.status_code
-        return data1
+        return jsonify(response.text, response.status_code)
     elif(response.status_code == 404):
-        data1 = json.loads(response.text), response.status_code
-        return data1
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def start_process_instance_key(key, businessKey, withVariablesInReturn):
     endpoint = url + "/process-definition/key/" + key + "/start"
-    payload = {
-        "key":key
-    }
     body = {
         # "variables": {
         #     "value": value
@@ -200,35 +167,30 @@ def start_process_instance_key(key, businessKey, withVariablesInReturn):
         "businessKey": businessKey,
         "withVariablesInReturn": withVariablesInReturn #true
     }
-    response = requests.request("POST", endpoint, params=payload, json=body)
+    response = requests.request("POST", endpoint, json=body)
     if(response.status_code == 200):
-        data1 = json.loads(response.text), response.status_code
-        return data1
+        return jsonify(response.text, response.status_code)
     elif(response.status_code == 400):
-        data1 = json.loads(response.text), response.status_code
-        return data1
+        return jsonify(response.text, response.status_code)
     elif(response.status_code == 404):
-        data1 = json.loads(response.text), response.status_code
-        return data1
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def delete_process_instance(id):
     endpoint = url + "/process-instance/" + id
-    payload = {
+    params = {
         "id": id
     }
-    response = requests.request("DELETE", endpoint, params=payload)
+    response = requests.request("DELETE", endpoint, params=params)
     if(response.status_code == 204):
-        return "Request successful"
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def suspend_process_definition_id(processDefinitionId, includeProcessInstances):
     endpoint = url + "/process-definition/" + processDefinitionId + "/suspended"
-    payload = {
+    params = {
         "processDefinition": processDefinitionId,
     }
     body = {
@@ -236,16 +198,15 @@ def suspend_process_definition_id(processDefinitionId, includeProcessInstances):
         "includeProcessInstances": includeProcessInstances
         #"date"
     }
-    response = requests.request("PUT", endpoint, params=payload, json=body)
+    response = requests.request("PUT", endpoint, params=params, json=body)
     if(response.status_code == 204):
-        return "Request successful"
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def activate_process_definition_id(processDefinitionId, includeProcessInstances):
     endpoint = url + "/process-definition/" + processDefinitionId + "/suspended"
-    payload = {
+    params = {
         "processDefinition": processDefinitionId,
     }
     body = {
@@ -253,12 +214,11 @@ def activate_process_definition_id(processDefinitionId, includeProcessInstances)
         "includeProcessInstances": includeProcessInstances
         #"date"
     }
-    response = requests.request("PUT", endpoint, params=payload, json=body)
+    response = requests.request("PUT", endpoint, params=params, json=body)
     if(response.status_code == 204):
-        return "Request successful"
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def suspend_process_definition_key(processDefinitionKey, includeProcessInstances):
     endpoint = url + "/process-definition/suspended"
@@ -267,18 +227,13 @@ def suspend_process_definition_key(processDefinitionKey, includeProcessInstances
         "suspended": "true",
         "includeProcessInstances": includeProcessInstances
     }
-    print(endpoint)
-    print(body)
     response = requests.request("PUT", endpoint, json=body)
-    print(response)
     if(response.status_code == 204):
-        return "Request successful"
+        return jsonify(response.text, response.status_code)
     elif(response.status_code == 400):
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def activate_process_definition_key(processDefinitionKey, includeProcessInstances):
     endpoint = url + "/process-definition/suspended"
@@ -287,65 +242,45 @@ def activate_process_definition_key(processDefinitionKey, includeProcessInstance
         "suspended": "false",
         "includeProcessInstances": includeProcessInstances
     }
-    print(endpoint)
-    print(body)
     response = requests.request("PUT", endpoint, json=body)
-    print(response)
     if(response.status_code == 204):
-        return "Request successful"
+        return jsonify(response.text, response.status_code)
     elif(response.status_code == 400):
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def update_process_definition_id(id): #used for Za brisanje iz baze
     endpoint = url + "/process-defintion/" + id + "/history-time-to-live"
-    payload = {
-        "id": id
-    }
-    response = requests.request("PUT", endpoint, params=payload)
+    response = requests.request("PUT", endpoint)
     if(response.status_code == 204):
-        return "Request successful"
+        return jsonify(response.text, response.status_code)
     elif(response.status_code == 400):
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
     else:
-        error = json.loads(response.text), response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def suspend_process_instance_by_process_definition(id):
     endpoint = url + "/process-instance/" + id + "/suspended"
-    payload = {
-        "id": id
-    }
     body = {
         "suspended": "true"
     }
-    response = requests.request("PUT", endpoint, params=payload, json=body)
+    response = requests.request("PUT", endpoint, json=body)
     if(response.status_code == 204):
-        return jsonify("Request successful")
+        return jsonify(response.text, response.status_code)
     else:
-        error = response.text, response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def activate_process_instance_by_process_definition(id):
     endpoint = url + "/process-instance/" + id + "/suspended"
-    payload = {
-        "id": id
-    }
     body = {
         "suspended": "false"
     }
-    response = requests.request("PUT", endpoint, params=payload, json=body)
+    response = requests.request("PUT", endpoint, json=body)
     if(response.status_code == 204):
-        return jsonify("Request successful")
+        return jsonify(response.text, response.status_code)
     else:
-        error = response.text, response.status_code
-        return error
-
-
+        return jsonify(response.text, response.status_code)
 
 def suspend_process_instance_by_process_definition_key(processDefinitionKey):
     endpoint = url + "/process-instance/suspended"
@@ -355,10 +290,9 @@ def suspend_process_instance_by_process_definition_key(processDefinitionKey):
     }
     response = requests.request("PUT", endpoint, json=body)
     if(response.status_code == 204):
-        return jsonify("Request successful")
+        return jsonify(response.text, response.status_code)
     else:
-        error = response.text, response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def activate_process_instance_by_process_definition_key(processDefinitionKey):
     endpoint = url + "/process-instance/suspended"
@@ -368,10 +302,9 @@ def activate_process_instance_by_process_definition_key(processDefinitionKey):
     }
     response = requests.request("PUT", endpoint, json=body)
     if(response.status_code == 204):
-        return jsonify("Request successful")
+        return jsonify(response.text, response.status_code)
     else:
-        error = response.text, response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def get_process_instance_variable(id, varName, deserializeValue):
     endpoint = url + "/process-instance/" + id + "/variables/" + varName
@@ -380,11 +313,9 @@ def get_process_instance_variable(id, varName, deserializeValue):
     }
     response = requests.request("GET", endpoint, params=payload)
     if(response.status_code == 200):
-        data = json.loads(response.text), response.status_code
-        return jsonify(data)
+        return jsonify(response.text, response.status_code)
     else:
-        error = response.text, response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def get_process_instance_variables_list(id, deserializeValue):
     endpoint = url + "/process-instance/" + id + "/variables"
@@ -393,21 +324,215 @@ def get_process_instance_variables_list(id, deserializeValue):
     }
     response = requests.request("GET", endpoint, params=payload)
     if(response.status_code == 200):
-        data = json.loads(response.text), response.status_code
-        return jsonify(data)
+        return jsonify(response.text, response.status_code)
     else:
-        error = response.text, response.status_code
-        return error
+        return jsonify(response.text, response.status_code)
 
 def get_process_instance_variable_binary(id, varName): #not tested, no binary data for testing
     endpoint = url + "/process-instance/" + id + "/variables/" + varName + "/data"
     response = requests.request("GET", endpoint)
     if(response.status_code == 200):
-        data = json.loads(response.text), response.status_code
-        return jsonify(data)
+        return jsonify(response.text, response.status_code)
     else:
-        error = response.text, response.status_code
-        return jsonify(error)
+        return jsonify(response.text, response.status_code)
+
+def update_process_instance_variable(id, varName, value, varType):
+    endpoint = url + "/process-instance/" + id + "/variables/" + varName
+    body = {
+        "value": value,
+        "type": varType,
+        #"valueInfo": valueInfo 
+    }
+    response = requests.request("PUT", endpoint, json=body)
+    if(response.status_code == 204):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def delete_process_instance_variable(id, varName):
+    endpoint = url + "/process-instance/" + id + "/variables/" + varName
+    response = requests.request("DELETE", endpoint)
+    if(response.status_code == 204):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def get_task(id):
+    endpoint = url + "/task/" + id
+    response = requests.request("GET", endpoint)
+    if(response.status_code == 200):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def claim_task(id, userId):
+    endpoint = url + "/task/" + id + "/claim"
+    body = {
+        "userId": userId
+    }
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 204):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def unclaim_task(id):
+    endpoint = url + "/task/" + id + "/unclaim"
+    response = requests.request("POST", endpoint)
+    if(response.status_code == 204):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def set_asignee(id, userId):
+    endpoint = url + "/task/" + id + "/assignee"
+    body = {
+        "userId": userId
+    }
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 204):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def get_task_formkey(id): # fali path za spajanje forme
+    endpoint = url + "/task/" + id + "/form"
+    response = requests.request("GET", endpoint)
+    if(response.status_code == 200):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def get_deployed_form(id):
+    endpoint = url + "/task/" + id + "/deployed-form"
+    response = requests.request("GET", endpoint)
+    if(response.status_code == 200):
+        return jsonify(response.text, response.status_code)
+    elif(response.status_code == 400):
+        return jsonify(response.text, response.status_code)
+    elif(response.status_code == 403):
+        return jsonify(response.text, response.status_code)    
+    else:
+        return jsonify(response.text, response.status_code)
+
+def submit_form(id, variables): #nedovrseno
+    endpoint = url + "/task/" + id + "/submit-form"
+    body = {
+        "variables": variables
+    }
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 204):
+        return jsonify(response.text, response.status_code)
+    elif(response.status_code == 400):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def get_task_form_variables(id, deserializeValues): 
+    endpoint = url + "/task/" + id + "/form-variables"
+    params = {
+        #"variableNames": variableNames, #moze i bez toga, struktura podataka je lista  variableNames,
+        "deserializeValues": deserializeValues
+    }
+    response = requests.request("GET", endpoint, params=params)
+    if(response.status_code == 200):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def get_task_variable(id, varName, deserializeValue):
+    endpoint = url + "/task/" + id + "/variables/" + varName
+    params = {
+        "deserializeValue": deserializeValue
+    }
+    response = requests.request("GET", endpoint, json=params)
+    if(response.status_code == 200):
+        return jsonify(response.text, response.status_code)
+    elif(response.status_code == 404):
+        return jsonify(response.text, response.status_code)  
+    else:
+        return jsonify(response.text, response.status_code)    
+
+def get_task_variables(id, deserializeValues):
+    endpoint = url + "/task/" + id + "/variables"
+    params = {
+        "deserializeValues": deserializeValues
+    }
+    response = requests.request("GET", endpoint, params=params)
+    if(response.status_code == 200):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def update_task_variable(id, varName, Value, Type):
+    endpoint = url + "/task/" + id + "/variables/" + varName
+    body = {
+        "value": Value,
+        "type": Type,
+    }
+    response = requests.request("PUT", endpoint, json=body)
+    if(response.status_code == 204):
+        return jsonify(response.text, response.status_code)
+    elif(response.status_code == 400):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def get_external_task(id):
+    endpoint = url + "/external-task/" + id
+    response = requests.request("GET", endpoint)
+    if(response.status_code == 200):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def get_external_tasks(topicName):
+    endpoint = url + "/external-task/"
+    params = {
+        "topicName": topicName
+    }
+    response = requests.request("GET", endpoint, params=params)
+    if(response.status_code == 200):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def fetch_and_lock(workerId, maxTasks, topicName):
+    endpoint = url + "/external-task/fetchAndLock"
+    body = {
+        "workerId": workerId,
+        "maxTasks": maxTasks,
+        "topics": [{
+            "topicName": topicName,
+            "lockDuration": 10000,
+            # "variables:" [{
+            #     "value": Value,
+            #     "type": Type
+            # }]
+        }]
+    }
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 200):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
+def complete_external_task(id, workerId, kwargs):
+    endpoint = url + "/external-task/" + id + "/complete"
+    body = {
+        "workerId": workerId,
+        "variables": {"value": kwargs, "type": kwargs}
+    }
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 204):
+        return jsonify(response.text, response.status_code)
+    elif(response.status_code == 400):
+        return jsonify(response.text, response.status_code)    
+    elif(response.status_code == 404):
+        return jsonify(response.text, response.status_code)
+    else:
+        return jsonify(response.text, response.status_code)
+
 
 # def post_process_instance_variable_binary():
 #     endpoint = url + "/process-instance/" + id + "/variables/" + varName + "/data"
@@ -420,37 +545,6 @@ def get_process_instance_variable_binary(id, varName): #not tested, no binary da
 #         }
 #     }
 
-
-def update_process_instance_variable(id, varName, value, varType):
-    endpoint = url + "/process-instance/" + id + "/variables/" + varName
-    body = {
-        "value": value,
-        "type": varType,
-        #"valueInfo": valueInfo 
-    }
-    response = requests.request("PUT", endpoint, json=body)
-    if(response.status_code == 204):
-        return jsonify("Request succesful")
-    else:
-        error = response.text, response.status_code
-        return jsonify(error)
-
-def delete_process_instance_variable(id, varName):
-    endpoint = url + "/process-instance/" + id + "/variables/" + varName
-    response = requests.request("DELETE", endpoint)
-    if(response.status_code == 204):
-        return jsonify("Request successful")
-    else:
-        return jsonify("Request unsuccessful")
-
-def get_task(id):
-    endpoint = url + "/task/" + id
-    response = requests.request("GET", endpoint)
-    if(response.status_code == 200):
-        return jsonify(response.text, response.status_code)
-    else:
-        error = jsonify(response.text, response.status_code)
-        return error
 
 # def get_task_list():
 #     endpoint = url + "/task"
@@ -482,42 +576,10 @@ def get_task(id):
 #         error = jsonify(response.text, response.status_code)
 #         return error
 
-def claim_task(id, userId):
-    endpoint = url + "/task/" + id + "/claim"
-    body = {
-        "userId": userId
-    }
-    response = requests.request("POST", endpoint, json=body)
-    if(response.status_code == 204):
-        return jsonify("Request successful", response.status_code)
-    else:
-        error = jsonify(response.text, response.status_code)
-        return error
 
-def unclaim_task(id):
-    endpoint = url + "/task/" + id + "/unclaim"
-    response = requests.request("POST", endpoint)
-    if(response.status_code == 204):
-        return jsonify("Request successful", response.status_code)
-    else:
-        error = jsonify(response.text, response.status_code)
-        return error
-
-def set_asignee(id, userId):
-    endpoint = url + "/task/" + id + "/assignee"
-    body = {
-        "userId": userId
-    }
-    response = requests.request("POST", endpoint, json=body)
-    if(response.status_code == 204):
-        return jsonify("Request successful", response.status_code)
-    else:
-        error = jsonify(response.text, response.status_code)
-        return error
-
-
-# def complete_task(id):                                Mozda rijesiti vanjskom formom, ja se iskreno nadam
+# def complete_task(id):                                #Mozda rijesiti vanjskom formom, ja se iskreno nadam
 #     endpoint = url + "/task/" + id + "/complete"
+#     pepe = uzmi_varijable()
 #     body = {
 #         "variables": {
 #             "naslov": {"value": "Naslov", "type": "String"},
@@ -538,84 +600,15 @@ def set_asignee(id, userId):
 #     response = requests.request("POST", endpoint, json=body)
 #     if(response.status_code == 204):
 #         return jsonify("Request successful", response.status_code)
-#     elif(response.status_code == 400):
 #         return jsonify(response.text, response.status_code)
 #     else:
 #         error = jsonify(response.text, response.status_code)
 #         return error
 
-def get_task_formkey(id): # fali path za spajanje forme
-    endpoint = url + "/task/" + id + "/form"
-    response = requests.request("GET", endpoint)
-    if(response.status_code == 200):
-        return jsonify(response.text)
-    else:
-        return jsonify(response.text, response.status_code)
 
-def get_deployed_form(id):
-    endpoint = url + "/task/" + id + "/deployed-form"
-    response = requests.request("GET", endpoint)
-    if(response.status_code == 200):
-        return jsonify(response.text)
-    elif(response.status_code == 400):
-        return jsonify(response.text, response.status_code)
-    elif(response.status_code == 403):
-        return jsonify(response.text, response.status_code)    
-    else:
-        return jsonify(response.text, response.status_code)
-
-def submit_form(id, variables): #nedovrseno
-    endpoint = url + "/task/" + id + "/submit-form"
-    body = {
-        "variables": variables
-    }
-    response = requests.request("POST", endpoint, json=body)
-    if(response.status_code == 204):
-        return jsonify(response.text)
-    elif(response.status_code == 400):
-        return jsonify(response.text, response.status_code)
-    else:
-        return jsonify(response.text, response.status_code)
-
-def get_task_form_variables(id, deserializeValues): 
-    endpoint = url + "/task/" + id + "/form-variables"
-    payload = {
-        #"variableNames": variableNames, #moze i bez toga, struktura podataka je lista  variableNames,
-        "deserializeValues": deserializeValues
-    }
-    response = requests.request("GET", endpoint, params=payload)
-    if(response.status_code == 200):
-        return jsonify(response.text)
-    else:
-        return jsonify(response.text, response.status_code)
-
-def get_task_variable(id, varName, deserializeValue):
-    endpoint = url + "/task/" + id + "/variables/" + varName
-    payload = {
-        "deserializeValue": deserializeValue
-    }
-    response = requests.request("GET", endpoint, json=payload)
-    if(response.status_code == 200):
-        return jsonify(response.text)
-    elif(response.status_code == 404):
-        return jsonify(response.text, response.status_code)  
-    else:
-        return jsonify(response.text, response.status_code)    
-
-def get_task_variables(id, deserializeValues):
-    endpoint = url + "/task/" + id + "/variables"
-    payload = {
-        "deserializeValues": deserializeValues
-    }
-    response = requests.request("GET", endpoint, params=payload)
-    if(response.status_code == 200):
-        return jsonify(response.text)
-    else:
-        return jsonify(response.text, response.status_code)
-
-
+#handle external task error
 ###### TESTIRANJE
-@app.route("/api", methods=["GET", "POST", "DELETE", "PUT"])
+#@app.route("/api", methods=["GET", "POST", "DELETE", "PUT"])
 
 # def nesto31():
 #     calls = complete_task("f6ea7551-da54-11ea-8fe7-60f262e99a90")
@@ -629,35 +622,18 @@ def get_task_variables(id, deserializeValues):
 # def nesto34():
 #    calls = submit_form("id", "varijable")
 #    return calls
-# def nesto35():
-#     calls = get_task_form_variables("f7b7f6ba-da62-11ea-8fe7-60f262e99a90", True)
-#     return calls
-# def nesto36():
-#     calls = set_asignee("f7b7f6ba-da62-11ea-8fe7-60f262e99a90", "ToniID")
-#     return calls
-# def nesto37():
-#     calls = get_task_variable("7aa6d274-d99c-11ea-b794-60f262e99a90", "Odgovor", True)
-#     return calls
-def nesto38():
-    calls = get_task_variables("7aa6d274-d99c-11ea-b794-60f262e99a90", True)
-    return calls
 
-#get task variables list 
-#get task variable binary
 #post task variable binary
 #delete task variable binary
 #update task variable
 
+#@app.route('/api/uzmiVarijable', methods=['POST'])
+# @cross_origin()
+# def uzmi_varijable():
+#     varijable = request.get_json()
+#     return varijable 
 
-#get external task
-#get external task list
-#fetch and lock
-#complete external task
-#handle external task error
-
-
-
-
+#dummy data
 # def nesto():
 #     call = get_process_definition("Process_1qz246f:1:cb9690c3-d727-11ea-ac56-60f262e99a90")
 #     return jsonify(call)
@@ -755,84 +731,28 @@ def nesto38():
 # def nesto30():
 #     calls = unclaim_task("7aa6d274-d99c-11ea-b794-60f262e99a90")
 #     return calls
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def fetch_and_lock(self, topic, lockDuration=1000):
-    endpoint = str(self.url) + 'external-task/fetchAndLock'
-    workerId = str(self.workerId)
-    payload = {
-        "workerId": workerId,
-        "maxTasks": 1,
-        "topics": [{
-            "topicName": topic,
-            "lockDuration": lockDuration
-            #variables -> JSON array, if not included, all variables will be fetched
-            #"variables": [orderId]
-            #deserializeValues: true || false 
-        }]
-    }
-    try:
-        response = requests.request("POST", endpoint, json=payload)
-        if response.status_code == 200: print('OK') 
-        print(response.status_code)
-        body = response.text
-    except:
-        engine = False
-        if response.status_code == 500: print('Internal Server Error')
-        print('Engine is down')
-        if engine == True:
-            while body != '[]':
-                print('Polling')
-                fetch_and_lock = requests.request("POST", endpoint, json=payload)
-                time.sleep(5)
-                if body != '[]': break
-
-def extend_lock(self, taskid, workerId):
-    taskid = str(taskid)
-    endpoint = str(self.url) + '/external-task' + taskid + '/extendLock'
-    workerId = str(self.workerId)
-    payload = {
-        "newDuration": 5000,
-        "workerId": workerId
-    }
-    try:
-        response = requests.request("POST", endpoint, json=payload)
-        if response.status_code == 204: print('No Content')
-    except:
-        if response.status_code == 400: 
-            print('Bad Request')
-        elif response.status_code == 404: 
-            print('Not Found')
-
-
-
-# def externalTask(taskid):
-#     pepe = external("http://localhost:8080/engine-rest", "1")
-#     taskid = "cbf356c8-d727-11ea-ac56-60f262e99a90"
-#     pepe.get_external_task(taskid)
-#     return jsonify(pepe)
-    # return pepe.get_external_task(taskid)
-
-@app.route('/api/uzmiVarijable', methods=['POST'])
-@cross_origin()
-def uzmi_varijable():
-    varijable = request.get_json()
-    return varijable
+# def nesto35():
+#     calls = get_task_form_variables("f7b7f6ba-da62-11ea-8fe7-60f262e99a90", True)
+#     return calls
+# def nesto36():
+#     calls = set_asignee("f7b7f6ba-da62-11ea-8fe7-60f262e99a90", "ToniID")
+#     return calls
+# def nesto37():
+#     calls = get_task_variable("7aa6d274-d99c-11ea-b794-60f262e99a90", "Odgovor", True)
+#     return calls
+# def nesto38():
+#     calls = get_task_variables("7aa6d274-d99c-11ea-b794-60f262e99a90", True)
+#     return calls
+# def nesto39():
+#     calls = update_task_variable("8d36fe1f-da58-11ea-8fe7-60f262e99a90", "Naslov", "Peperoncino", "String")
+#     return calls
+# def nesto40():
+#    calls = get_external_tasks("test1")
+#    return calls
+# def nesto41():
+#     calls = fetch_and_lock("default", 1, "test1")
+#     return calls
+# def nesto42():
+#     data = {"value": "Pepe", "type": "String"}
+#     calls1 = complete_external_task("38e1716c-db40-11ea-9959-60f262e99a90", "default", data)
+#     return calls
