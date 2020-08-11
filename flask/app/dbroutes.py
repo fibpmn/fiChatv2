@@ -2,7 +2,7 @@ import json
 from app import app
 from flask import Flask, jsonify, request
 from flask_pymongo import PyMongo
-from bson import BSON, json_util
+from bson import BSON, json_util, ObjectId
 from flask_cors import cross_origin
 # from flask_bcrypt import Bcrypt
 # from flask_jwt_extended import JWTManager
@@ -14,9 +14,28 @@ mongo = PyMongo(app)
 def index():
     return 'good for you.'
 
-@app.route('/api/getRefs', methods=['GET'])
-def getRefs():
-    usersRef = mongo.db.users
-    roomsRef = mongo.db.chatRooms
-    filesRef = mongo.db.files
-    return json.dumps(mongo.db.chatRooms.find_one(), sort_keys=True, indent=4, default=json_util.default)
+#sve sobe, ili ako je dan userid, po useridu
+@app.route('/api/getRooms')
+@app.route('/api/getRooms/<userid>', methods=['GET'])
+def getRooms(userid=None):
+    if userid is None:
+        docs_list = list(mongo.db.chatRooms.find())
+    else:
+        docs_list = list(mongo.db.chatRooms.find({
+        "users" : ObjectId(userid)
+        }))
+    return json.dumps(docs_list, default=json_util.default)
+
+#sve poruke, ili ako je dan userid, po useridu
+@app.route('/api/getMessages')
+@app.route('/api/getMessages/<userid>', methods=['GET'])
+def getMessages(userid=None):
+    if userid is None:
+        docs_list = list(mongo.db.messages.find())
+    else:
+        docs_list = list(mongo.db.messages.find({
+        "sender_id" : ObjectId(userid)
+        }))
+    return json.dumps(docs_list, default=json_util.default)
+
+#sve poruke po sobama

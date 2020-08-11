@@ -11,12 +11,29 @@ let Rooms = {
         return response.data.map(doc => {
             return {
                 id: doc._id,
-                url: doc.source
+                name: doc.name,
+                users: doc.users,
+                messages: doc.messages
             };
         });
     }
 }
 
+let Messages = {
+    async getForRoom(){
+        let response = await Service.get('/api/getMessages')
+        return response.data.map(doc => {
+            return {
+                id: doc._id,
+                room_id: doc.room_id,
+                content: doc.content,
+                sender_id: doc.sender_id,
+                timestamp: doc.timestamp,
+                seen: doc.seen
+            }
+        })
+    }
+}
 let Users = {
     getAll(){
         return Service.get('/api/getUsers')
@@ -29,4 +46,4 @@ let Files = {
     }
 }
 
-export { Service, Rooms, Users, Files }
+export { Service, Rooms, Messages, Users, Files }

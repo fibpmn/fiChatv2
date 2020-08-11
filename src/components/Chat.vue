@@ -6,13 +6,14 @@
     :rooms="rooms"
     :messages="messages"
     :menuActions="menuActions"
+    @fetchMessages="fetchMessages"
   />
 </template>
 
 <script>
 import ChatWindow from "vue-advanced-chat";
 import "vue-advanced-chat/dist/vue-advanced-chat.css";
-import { Rooms, Users, Files } from '@/services'
+import { Rooms, Users, Files, Messages } from "@/services";
 
 export default {
   components: {
@@ -21,8 +22,13 @@ export default {
   props: ["theme"], //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
   data() {
     return {
-        rooms: [],
-        messages: [],
+      rooms: [],
+      messages: [],
+      messagesLoaded: false,
+			start: null,
+      end: null,
+      roomsListeners: [],
+			listeners: [],
       currentUserId: 1,
       menuActions: [
         {
@@ -175,31 +181,49 @@ export default {
     };
   },
   mounted() {
-    this.fetchRooms(),
-    this.fetchUsers(),
-    this.fetchFiles()
+    this.fetchRooms(), this.fetchUsers(), this.fetchFiles();
   },
   methods: {
+		resetRooms() {
+			this.loadingRooms = true
+			this.rooms = []
+			this.roomsListeners.forEach(listener => listener())
+			this.resetMessages()
+		},
+		resetMessages() {
+			this.messages = []
+			this.messagesLoaded = false
+			this.start = null
+			this.end = null
+			this.listeners.forEach(listener => listener())
+			this.listeners = []
+    },
     fetchRooms() {
-      Rooms.getAll()
-      .then(response => {
-        let data = response.data
-        return data
-      })
+      this.resetRooms();
+
+      Rooms.getAll().then((response) => {
+        let data = response.data;
+        return data;
+      });
+    },    
+    fetchMessages({ room, options = {}}){
+      if (options.reset) this.resetMessages()
+      Messages.getAll().then((response) => {
+        let data = response.data;
+        return data;
+      });
     },
     fetchUsers() {
-      Users.getAll()
-      .then(response => {
-        let data = response.data
-        return data
-      })
-    }, 
+      Users.getAll().then((response) => {
+        let data = response.data;
+        return data;
+      });
+    },
     fetchFiles() {
-      Files.getAll()
-      .then(response => {
-        let data = response.data
-        return data
-      })
+      Files.getAll().then((response) => {
+        let data = response.data;
+        return data;
+      });
     },
   },
 };
