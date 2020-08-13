@@ -12,7 +12,7 @@ mongo = PyMongo(app)
 
 @app.route('/')
 def index():
-    return 'good for you.'
+    return 'Not good for you.'
 
 @app.route('/api/getRefs', methods=['GET'])
 def getRefs():

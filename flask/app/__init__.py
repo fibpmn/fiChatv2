@@ -7,7 +7,7 @@ cors = CORS()
 cors.init_app(app)
 app.config.from_object('config.Config')
 
-from app import dbroutes, bpmnroutes
+from app import dbroutes, bpmnroutes, camundarest
 
 # SHOPPING_LIST = [
 #     {

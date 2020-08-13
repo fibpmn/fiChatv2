@@ -87,7 +87,7 @@ export default {
     sendVariables() {
       axios.defaults.baseURL = "http://localhost:5000";
       axios
-        .post("/api/uzmiVarijable", {
+        .post("/api/start-instance", {
           naslov: this.naslov,
           sazetak: this.sazetak,
           mentori: [

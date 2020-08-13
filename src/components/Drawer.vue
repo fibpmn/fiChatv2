@@ -15,6 +15,7 @@
               </v-list-item-content>
               <v-btn small fab depressed>
                   <v-icon>mdi-account-edit</v-icon>
+                  <router-link to="/PrijavaTeme"></router-link>
                   <!-- EDIT PROFILE -->
               </v-btn>
             </v-list-item>
