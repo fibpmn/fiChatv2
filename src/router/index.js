@@ -6,25 +6,20 @@ Vue.use(VueRouter)
 
   const routes = [
   {
-    path: '/About',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  },
-  {
     path: '/',
-    name: 'ShoppingList',
+    name: 'Chat',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/ShoppingList.vue')
+    component: () => import(/* webpackChunkName: "about" */ '../components/Chat.vue')
   },
   {
-    path: "/api/send",
-    name: "PrijavaTeme",
-    component: () => import('../components/PrijavaTeme.vue')
+    path: '/prijavateme',
+    name: 'PrijavaTeme',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    component: () => import(/* webpackChunkName: "about" */ '../views/PrijavaTeme.vue')
   }
 ]
 
