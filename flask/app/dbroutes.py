@@ -14,28 +14,66 @@ mongo = PyMongo(app)
 def index():
     return 'good for you.'
 
-#sve sobe, ili ako je dan userid, po useridu
-@app.route('/api/getRooms')
-@app.route('/api/getRooms/<userid>', methods=['GET'])
-def getRooms(userid=None):
-    if userid is None:
+#sve sobe
+@app.route('/api/getRooms', methods=['GET'])
+def getRooms():
+    try:
         docs_list = list(mongo.db.chatRooms.find())
-    else:
-        docs_list = list(mongo.db.chatRooms.find({
-        "users" : ObjectId(userid)
-        }))
-    return json.dumps(docs_list, default=json_util.default)
+        return json.dumps(docs_list, default=json_util.default)
+    except Exception as e:
+        return json.dumps({'error' : str(e)})
 
-#sve poruke, ili ako je dan userid, po useridu
-@app.route('/api/getMessages')
-@app.route('/api/getMessages/<userid>', methods=['GET'])
-def getMessages(userid=None):
-    if userid is None:
+
+#svi useri
+@app.route('/api/getUsers', methods=['GET'])
+def getUsers():
+    try:
+        docs_list = list(mongo.db.users.find())
+        return json.dumps(docs_list, default=json_util.default)
+    except Exception as e:
+        return json.dumps({'error' : str(e)})
+
+
+#sve poruke
+@app.route('/api/getMessages', methods=['GET'])
+def getMessages():
+    try:
         docs_list = list(mongo.db.messages.find())
-    else:
-        docs_list = list(mongo.db.messages.find({
-        "sender_id" : ObjectId(userid)
-        }))
-    return json.dumps(docs_list, default=json_util.default)
+        return json.dumps(docs_list, default=json_util.default)
+    except Exception as e:
+        return json.dumps({'error' : str(e)})
 
-#sve poruke po sobama
+
+#sve poruke određene sobe
+@app.route('/api/getRoomMessages/<room_id>', methods=['GET'])
+def getRoomMessages(room_id):
+    try:
+        docs_list = list(mongo.db.messages.find({
+        "room_id" : ObjectId(room_id)
+        }))
+        return json.dumps(docs_list, default=json_util.default)
+    except Exception as e:
+        return json.dumps({'error' : str(e)})
+
+#sve poruke određenog user
+@app.route('/api/getUserMessages/<user_id>', methods=['GET'])
+def getUserMessages(user_id):
+    try:
+        docs_list = list(mongo.db.messages.find({
+        "sender_id" : ObjectId(user_id)
+        }))
+        return json.dumps(docs_list, default=json_util.default)
+    except Exception as e:
+        return json.dumps({'error' : str(e)})
+
+
+#sobe u kojima je user
+@app.route('/api/getUserRooms/<user_id>', methods=['GET'])
+def getUserRooms(user_id):
+    try:
+        docs_list = list(mongo.db.chatRooms.find({
+        "users" : ObjectId(user_id)
+        }))
+        return json.dumps(docs_list, default=json_util.default)
+    except Exception as e:
+        return json.dumps({'error' : str(e)})

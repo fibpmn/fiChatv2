@@ -198,20 +198,16 @@ export default {
 			this.listeners.forEach(listener => listener())
 			this.listeners = []
     },
-    fetchRooms() {
+    async fetchRooms() {
       this.resetRooms();
-
-      Rooms.getAll().then((response) => {
-        let data = response.data;
-        return data;
-      });
+      var roomData = await Rooms.getAll();
+      console.log(roomData);
     },    
-    fetchMessages({ room, options = {}}){
+    async fetchMessages({room, options = {}}){
+      console.log(room);
       if (options.reset) this.resetMessages()
-      Messages.getAll().then((response) => {
-        let data = response.data;
-        return data;
-      });
+      var messageData = await Messages.getAll();
+      console.log(messageData);
     },
     fetchUsers() {
       Users.getAll().then((response) => {
