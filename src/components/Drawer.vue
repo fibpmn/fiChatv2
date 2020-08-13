@@ -13,9 +13,8 @@
                 <v-list-item-title> {{"User"}} {{"Name"}}</v-list-item-title>
                 <v-list-item-subtitle>Online</v-list-item-subtitle>
               </v-list-item-content>
-              <v-btn small fab depressed>
+              <v-btn to="/prijavateme" small fab depressed>
                   <v-icon>mdi-account-edit</v-icon>
-                  <router-link to="/PrijavaTeme"></router-link>
                   <!-- EDIT PROFILE -->
               </v-btn>
             </v-list-item>

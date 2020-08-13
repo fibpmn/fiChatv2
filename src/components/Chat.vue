@@ -181,7 +181,7 @@ export default {
     };
   },
   mounted() {
-    this.fetchRooms(), this.fetchUsers(), this.fetchFiles();
+    this.fetchRooms(), this.fetchUsers();
   },
   methods: {
 		resetRooms() {
