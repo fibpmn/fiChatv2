@@ -6,14 +6,13 @@
     :rooms="rooms"
     :messages="messages"
     :menuActions="menuActions"
-    @fetchMessages="fetchMessages"
   />
 </template>
 
 <script>
 import ChatWindow from "vue-advanced-chat";
 import "vue-advanced-chat/dist/vue-advanced-chat.css";
-import { Rooms, Users, Files, Messages } from "@/services";
+import { Rooms, Users, Messages } from "@/services";
 
 export default {
   components: {
@@ -25,11 +24,11 @@ export default {
       rooms: [],
       messages: [],
       messagesLoaded: false,
-			start: null,
+      start: null,
       end: null,
       roomsListeners: [],
-			listeners: [],
-      currentUserId: 1,
+      listeners: [],
+      currentUserId: "5f2ed1c620806f9c4fadc693",
       menuActions: [
         {
           //sluzi za gumb na tri veritkalne tocke, ako ces menuActionHandler event za custom akciju
@@ -181,46 +180,105 @@ export default {
     };
   },
   mounted() {
-    this.fetchRooms(), this.fetchUsers();
+    this.fetchRooms(), this.fetchUsers(), this.fetchAllMessages();
   },
   methods: {
-		resetRooms() {
-			this.loadingRooms = true
-			this.rooms = []
-			this.roomsListeners.forEach(listener => listener())
-			this.resetMessages()
-		},
-		resetMessages() {
-			this.messages = []
-			this.messagesLoaded = false
-			this.start = null
-			this.end = null
-			this.listeners.forEach(listener => listener())
-			this.listeners = []
+    resetRooms() {
+      this.loadingRooms = true;
+      this.rooms = [];
+      this.roomsListeners.forEach((listener) => listener());
+      this.resetMessages();
+    },
+    resetMessages() {
+      this.messages = [];
+      this.messagesLoaded = false;
+      this.start = null;
+      this.end = null;
+      this.listeners.forEach((listener) => listener());
+      this.listeners = [];
     },
     async fetchRooms() {
       this.resetRooms();
-      var roomData = await Rooms.getAll();
-      console.log(roomData);
-    },    
-    async fetchMessages({room, options = {}}){
-      console.log(room);
-      if (options.reset) this.resetMessages()
+      const rooms = await Rooms.getUserRooms(this.currentUserId);
+      console.log(rooms);
+      const roomList = [];
+      const rawRoomUsers = [];
+      const rawMessages = [];
+
+      rooms.forEach((room) => {
+        roomList[room.id.$oid] = {
+          id: room.id.$oid,
+          name: room.name,
+          messages: room.messages,
+          users: room.users,
+        };
+        const rawUsers = [];
+        room.users.map((userId) => {
+          const promise = Users.getOne(userId.$oid).then((user) => {
+            return {
+              id: user[0].id,
+              ...{
+                username: user[0].username,
+                chatRooms: room.id.$oid,
+              },
+            };
+          });
+          rawUsers.push(promise);
+        });
+        rawUsers.map((users) => rawRoomUsers.push(users));
+        rawMessages.push();
+      });
+      const users = await Promise.all(rawRoomUsers);
+      users.map((user) => roomList[user.chatRooms].users.push(user));
+      //do ovdje ok
+      const roomMessages = await Promise.all(rawMessages).then((messages) => {
+        return messages.map((message) => {
+          return {
+            lastMessage: this.formatLastMessage(message),
+            roomId: message.roomId,
+          };
+        });
+      });
+      roomMessages.map(
+        (ms) => (roomList[ms.roomId].lastMessage = ms.lastMessage)
+      );
+      const formattedRooms = [];
+      Object.keys(roomList).forEach((key) => {
+        const room = roomList[key];
+        const roomContacts = room.users.filter(
+          (user) => user._id !== this.currentUserId
+        );
+        room.roomName =
+          roomContacts.map((user) => user.username).join(", ") || "Myself";
+        const roomAvatar =
+          roomContacts.length === 1 && roomContacts[0].avatar
+            ? roomContacts[0].avatar
+            : require("@/assets/logo.png");
+        formattedRooms.push({
+          ...{
+            roomId: key,
+            avatar: roomAvatar,
+            ...room,
+          },
+        });
+      });
+      this.rooms = this.rooms.concat(formattedRooms);
+      this.loadingRooms = false;
+      this.rooms.map((room, index) => this.listenLastMessage(room, index));
+    },
+    async fetchUsers() {
+      var userData = await Users.getAll();
+      console.log(userData);
+    },
+    async fetchAllMessages() {
       var messageData = await Messages.getAll();
       console.log(messageData);
     },
-    fetchUsers() {
-      Users.getAll().then((response) => {
-        let data = response.data;
-        return data;
-      });
-    },
-    fetchFiles() {
-      Files.getAll().then((response) => {
-        let data = response.data;
-        return data;
-      });
-    },
+    // async fetchMessages({room, options = {}}){
+    //   console.log(room);
+    //   if (options.reset) this.resetMessages()
+    //   var messageData = await Messages.getAll();
+    // },
   },
 };
 </script>

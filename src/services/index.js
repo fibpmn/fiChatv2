@@ -2,12 +2,23 @@ import axios from 'axios'
 
 let Service = axios.create({
     baseURL: 'http://localhost:5000',
-    timeout: 1000
+    //timeout: 10000
 })
 
 let Rooms = {
-    async getAll(){
+    async getAll() {
         let response = await Service.get('/api/getRooms')
+        return response.data.map(doc => {
+            return {
+                id: doc._id,
+                name: doc.name,
+                users: doc.users,
+                messages: doc.messages
+            };
+        });
+    },
+    async getUserRooms(userid) {
+        let response = await Service.get(`/api/getUserRooms/${userid}`)
         return response.data.map(doc => {
             return {
                 id: doc._id,
@@ -20,7 +31,7 @@ let Rooms = {
 }
 
 let Messages = {
-    async getForRoom(){
+    async getAll() {
         let response = await Service.get('/api/getMessages')
         return response.data.map(doc => {
             return {
@@ -34,16 +45,38 @@ let Messages = {
         })
     }
 }
+
 let Users = {
-    getAll(){
-        return Service.get('/api/getUsers')
+    async getAll() {
+        let response = await Service.get('/api/getUsers')
+        return response.data.map(doc => {
+            return {
+                id: doc._id,
+                username: doc.username,
+                group: doc.group,
+                chatRooms: doc.chatRooms,
+                messages: doc.messages
+            };
+        });
+    },
+    async getOne(userid) {
+        let response = await Service.get(`/api/getUserData/${userid}`)
+        return response.data.map(doc => {
+            return {
+                id: doc._id,
+                username: doc.username,
+                group: doc.group,
+                chatRooms: doc.chatRooms,
+                messages: doc.messages
+            };
+        });
     }
 }
 
-let Files = {
-    getAll(){
-        return Service.get('/api/getFiles')
-    }
-}
+// let Files = {
+//     getAll() {
+//         return Service.get('/api/getFiles')
+//     }
+// }
 
-export { Service, Rooms, Messages, Users, Files }
+export { Service, Rooms, Messages, Users }
