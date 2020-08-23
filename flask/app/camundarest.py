@@ -2,7 +2,6 @@ from app import app
 from flask import jsonify
 import requests, json, time
 
-
 global url 
 url = 'http://localhost:8080/engine-rest' 
 
@@ -145,14 +144,12 @@ def get_subprocesses(processInstanceId):
 
 
 
-def get_process_instances_list( caseInstanceId):
+def get_process_instances_list(businessKey):
     endpoint = url + "/process-instance"
     params = {
         #"processDefinitionId": processDefinitionId, processDefinitionId
         #"processDefinitionKey": processDefinitionKey,  processDefinitionKey, 
-        #"businessKey": businessKey,  businessKey
-        #"caseInstanceId":caseInstanceId,
-        #"superProcessInstance": superProcessInstance, superProcessInstance,
+        "businessKey": businessKey,  
         #"deploymentId": deploymentId,
         #"active": active, , active,
         #"suspended": "true",
@@ -186,29 +183,26 @@ def start_process_instance_id(id, businessKey, withVariablesInReturn):
     else:
         return jsonify(response.text, response.status_code)
 
-def start_process_instance_key(key, businessKey, withVariablesInReturn):
+def start_process_instance_key(key): #user
     endpoint = url + "/process-definition/key/" + key + "/start"
-    variables = {
-             "name": "varName", 
-             "value": "ToniID",
-             "type": "String" 
-            }
-    #data = json.dumps(variables)
-    #res = isinstance(data, str)
-    #print(res)
+    businessKey = str(key) + "ToniID" #str(user)
+    # variables = {
+    #          "name": "varName", 
+    #          "value": "ToniID", #user
+    #          "type": "String" 
+    # }
     body = {
         "variables": {
-            "varName": {
-                "value": "ToniID",
+            "initiator": {
+                "value": "ToniID", #user
                 "type": "String"
             }
         },
         "businessKey": businessKey,
-        "withVariablesInReturn": withVariablesInReturn #true
+        "withVariablesInReturn": True #true
     }
     response = requests.request("POST", endpoint, json=body)
     if(response.status_code == 200):
-        print(response.text)
         return jsonify(response.text, response.status_code)
     elif(response.status_code == 400):
         return jsonify(response.text, response.status_code)
@@ -402,6 +396,36 @@ def get_task(id):
     else:
         return jsonify(response.text, response.status_code)
 
+def get_task_list(assignee):
+    endpoint = url + "/task"
+    params = {
+        # "processInstanceId": processInstanceId,
+        # "processDefinitionName": processDefinitionName,
+        # "processDefinitionKey": processDefinitionKey,
+        "assignee": assignee,
+        # "assigneeExpression": assigneeExpression,
+        # "owner": owner,
+        # "candidateGroup": candidateGroup,
+        # "candidateUser": candidateUser,
+        # "includeAssignedTasks": includeAssignedTasks,
+        # "assigned": assigned,
+        # "unassigned": unassigned,
+        # "name": name,
+        # "createdOn": createdOn, #datum je fckdup  yyyy-MM-dd'T'HH:mm:ss.SSSZ
+        # "candidateGroups": candidateGroups,
+        # "active": active,
+        # "suspended": suspended,
+        # "sortBy": sortBy, #id, name
+        # "sortOrder": sortOrder, #asc or desc
+        # "maxResults": maxResults #int
+    }
+    response = requests.request("GET", endpoint, params=params)
+    if(response.status_code == 200):
+        return response.text
+    else:
+        error = jsonify(response.text, response.status_code)
+        return error
+
 def claim_task(id, userId):
     endpoint = url + "/task/" + id + "/claim"
     body = {
@@ -432,6 +456,8 @@ def set_asignee(id, userId):
     else:
         return jsonify(response.text, response.status_code)
 
+
+
 def get_task_formkey(id): # fali path za spajanje forme
     endpoint = url + "/task/" + id + "/form"
     response = requests.request("GET", endpoint)
@@ -452,10 +478,35 @@ def get_deployed_form(id):
     else:
         return jsonify(response.text, response.status_code)
 
-def submit_form(id, variables): #nedovrseno
+def submit_form(id, naslov, sazetak, dispozicija, literatura, obrazac): #nedovrseno
     endpoint = url + "/task/" + id + "/submit-form"
     body = {
-        "variables": variables
+        "variables": {
+            "NaslovRada": {
+                "value": naslov,
+                "type": "String"
+            },
+            "SazetakRada": {
+                "value": sazetak,
+                "type": "String"
+            },
+            "DispozicijaRada": {
+                "value": dispozicija,
+                "type": "String"
+            },
+            "PopisLiterature": {
+                "value": literatura,
+                "type": "String"
+            },
+            "IspunjeniObrazac": {
+                "value": obrazac,
+                "type": "boolean"
+            },
+            # "Mentori": {
+            #     "value": mentori,
+            #     "type": "String"
+            # }
+        }
     }
     response = requests.request("POST", endpoint, json=body)
     if(response.status_code == 204):
@@ -465,15 +516,15 @@ def submit_form(id, variables): #nedovrseno
     else:
         return jsonify(response.text, response.status_code)
 
-def get_task_form_variables(id, deserializeValues): 
+def get_task_form_variables(id): 
     endpoint = url + "/task/" + id + "/form-variables"
     params = {
         #"variableNames": variableNames, #moze i bez toga, struktura podataka je lista  variableNames,
-        "deserializeValues": deserializeValues
+        "deserializeValues": "false"
     }
     response = requests.request("GET", endpoint, params=params)
     if(response.status_code == 200):
-        return jsonify(response.text, response.status_code)
+        return response.text
     else:
         return jsonify(response.text, response.status_code)
 
@@ -549,16 +600,21 @@ def fetch_and_lock(workerId, maxTasks, topicName):
         }]
     }
     response = requests.request("POST", endpoint, json=body)
+    print(response.text)
     if(response.status_code == 200):
-        return jsonify(response.text, response.status_code)
+        return response.text
     else:
         return jsonify(response.text, response.status_code)
 
-def complete_external_task(id, workerId, kwargs):
+def complete_external_task(id, workerId, mentori):
     endpoint = url + "/external-task/" + id + "/complete"
     body = {
         "workerId": workerId,
-        "variables": {"value": kwargs, "type": kwargs}
+        "variables": {
+            "Mentori": { 
+                "value": mentori     
+            }
+        }
     }
     response = requests.request("POST", endpoint, json=body)
     if(response.status_code == 204):
@@ -570,6 +626,16 @@ def complete_external_task(id, workerId, kwargs):
     else:
         return jsonify(response.text, response.status_code)
 
+def get_process_xml(key):
+    endpoint = url + "/process-definition/key/" + key + "/xml"
+    headers = {"Content-Type": "application/xml"}
+    response = requests.request("GET", endpoint, headers=headers) 
+    if(response.status_code == 200):
+        return json.loads(response.text)
+    elif(response.status_code == 403):
+        return response.text, response.status_code
+    else:
+        return response.text, response.status_code
 
 # def post_process_instance_variable_binary():
 #     endpoint = url + "/process-instance/" + id + "/variables/" + varName + "/data"
@@ -583,35 +649,7 @@ def complete_external_task(id, workerId, kwargs):
 #     }
 
 
-# def get_task_list():
-#     endpoint = url + "/task"
-#     payload = {
-#         "processInstanceId": processInstanceId,
-#         "processDefinitionName": processDefinitionName,
-#         "processDefinitionKey": processDefinitionKey,
-#         "assignee": assignee,
-#         "assigneeExpression": assigneeExpression,
-#         "owner": owner,
-#         "candidateGroup": candidateGroup,
-#         "candidateUser": candidateUser,
-#         "includeAssignedTasks": includeAssignedTasks,
-#         "assigned": assigned,
-#         "unassigned": unassigned,
-#         "name": name,
-#         "createdOn": createdOn, #datum je fckdup  yyyy-MM-dd'T'HH:mm:ss.SSSZ
-#         "candidateGroups": candidateGroups,
-#         "active": active,
-#         "suspended": suspended,
-#         "sortBy": sortBy, #id, name
-#         "sortOrder": sortOrder, #asc or desc
-#         "maxResults": maxResults #int
-#     }
-#     response = requests.request("GET", endpoint, params=payload)
-#     if(response.status_code == 200):
-#         return jsonify(response.text, response.status_code)
-#     else:
-#         error = jsonify(response.text, response.status_code)
-#         return error
+
 
 
 # def complete_task(id):                                #Mozda rijesiti vanjskom formom, ja se iskreno nadam

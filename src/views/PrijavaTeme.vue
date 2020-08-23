@@ -8,7 +8,7 @@
             <img src="/1961V2.png" alt="LOGO" />
           </v-avatar>
         </v-row>
-        <v-form @submit.prevent="login">
+        <v-form @submit.prevent="sendVariables">
           <v-text-field
             v-model="naslov"
             label="Naslov"
@@ -23,7 +23,7 @@
           <v-text-field
             v-model="sazetak"
             class="my-3 mt-3 ml-4 mr-4 mb-4"
-            label="sazetak"
+            label="Sazetak"
             placeholder="Unesite sazetak rada"
             row-height="14"
             rows="3"
@@ -32,10 +32,10 @@
             dense
           ></v-text-field>
           <v-text-field
-            v-model="mentor1"
+            v-model="dispozicija"
             class="my-3 mt-3 ml-4 mr-4 mb-4"
-            label="Mentor"
-            placeholder="Unesite potencijalnog mentora"
+            label="Dispozicija"
+            placeholder="Unesi dispoziciju rada"
             row-height="14"
             rows="3"
             auto-grow
@@ -43,16 +43,41 @@
             dense
           ></v-text-field>
           <v-text-field
-            v-model="mentor2"
+            v-model="literatura"
             class="my-3 mt-3 ml-4 mr-4 mb-4"
-            label="Mentor"
-            placeholder="Unesite potencijalnog mentora"
+            label="Popis literature"
+            placeholder="Unesi literaturu"
             row-height="14"
             rows="3"
             auto-grow
             clearable
             dense
           ></v-text-field>
+          <v-combobox
+            class="my-3 ml-4 mr-4 mb-4"
+            v-model="selectedMentor"
+            :items="items"
+            placeholder="Odaberi moguće mentore"
+            background-color
+            item-color="black"
+            auto-grow
+            :clearable="true"
+            hide-no-data
+            label="Odaberi mentore"
+            multiple
+            dense
+            hide-selected
+            :rules="rules"
+          ></v-combobox>
+          <!-- <v-file-input
+            label="Obrazac"
+            class="my-3 ml-4 mr-4 mb-4"
+            placeholder="Unesi ispunjeni obrazac"
+            show-size
+            clearable
+            dense
+          ></v-file-input>-->
+          <v-checkbox class="my-3 ml-4 mr-4 mb-4" v-model="obrazac" label="Ispunjeni obrazac"></v-checkbox>
           <div class="text-center pt-0 pb-0 my-3">
             <v-btn
               tile
@@ -78,39 +103,62 @@ export default {
     return {
       naslov: "",
       sazetak: "",
-      mentori: [],
-      mentor1: "",
-      mentor2: "",
+      dispozicija: "",
+      literatura: "",
+      obrazac: false,
+      loading: false,
+      rules: [], //rules predstavljaju validaciju inputa, pr. unos je predug/prekratak, maksimalno 20 char,...
+      selectedMentor: [],
+      items: [ // treba napuniti array items iz baze
+        {
+          text: "doc.dr.sc Darko Etinger",
+          value: "DarkoID"
+        },
+        {
+          text: "doc.dr.sc Nikola Tanković",
+          value: "NikolaID"
+        },
+        {
+          text: "doc.dr.sc Siniša Miličić",
+          value: "SinisaID"
+        }
+      ]
     };
   },
   methods: {
     sendVariables() {
+      let mentoriZaSlati = this.selectedMentor.map(mentor => {
+        let objekt = {};
+        //{"assigneeList": ["NikolaID", "DarkoID", "TihomirID"]}
+        objekt["value"] = mentor.value;
+        // objekt["type"] = "String";
+        return objekt;
+      });
       axios.defaults.baseURL = "http://localhost:5000";
-      axios
-        .post("/api/start-instance", {
+      // axios.all([
+          axios.post("/api/task/form", {
+          id: "bc7e46aa-e140-11ea-8f89-60f262e99a90",
           naslov: this.naslov,
           sazetak: this.sazetak,
-          mentori: [
-            {
-              value: this.mentor1,
-              type: "string",
-            },
-            {
-              value: this.mentor2,
-              type: "string",
-            },
-          ],
+          dispozicija: this.dispozicija,
+          literatura: this.literatura,
+          obrazac: this.obrazac,
+          mentori: mentoriZaSlati
         })
+        //   axios.post("/api/task/form", {
+        //   mentori: mentoriZaSlati
+        // })
+        //       ])
         .then(
-          (response) => {
+          response => {
             console.log(response);
           },
-          (error) => {
+          error => {
             console.log(error);
           }
         );
-    },
-  },
+  }
+  }
 };
 </script>
 

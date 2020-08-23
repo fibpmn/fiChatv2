@@ -8,19 +8,38 @@ Vue.use(VueRouter)
   {
     path: '/',
     name: 'Chat',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../components/Chat.vue')
+    component: () => import('../components/Chat.vue')
   },
   {
     path: '/prijavateme',
     name: 'PrijavaTeme',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/PrijavaTeme.vue')
-  }
+    component: () => import('../views/PrijavaTeme.vue')
+  },
+  {
+    path: '/startproces',
+    name: 'StartProces',
+    component: () => import('../views/StartProces.vue')
+  },
+  {
+    path: '/odluci',
+    name: 'Odluci',
+    component: () => import('../views/Odluci.vue')
+  },
+  {
+    path: '/zadnjaverzija',
+    name: 'ZadnjaVerzija',
+    component: () => import('../views/ZadnjaVerzija.vue')
+  },
+  {
+    path: '/zavrsi',
+    name: 'Zavrsi',
+    component: () => import('../views/Zavrsi.vue')
+  },
+  {
+    path: '/usertaskForm',
+    name: 'UserTaskForm',
+    component: () => import('../views/UserTaskForm.vue')
+  },
 ]
 
 const router = new VueRouter({
