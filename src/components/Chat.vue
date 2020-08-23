@@ -4,6 +4,7 @@
     :theme="theme"
     :currentUserId="currentUserId"
     :rooms="rooms"
+    :loadingRooms="loadingRooms"
     :messages="messages"
     :menuActions="menuActions"
     @fetchMessages="fetchMessages"
@@ -13,7 +14,8 @@
 <script>
 import ChatWindow from "vue-advanced-chat";
 import "vue-advanced-chat/dist/vue-advanced-chat.css";
-import { Rooms, Users, Files, Messages } from "@/services";
+import { Rooms, Users, Messages } from "@/services";
+//import { parseTimestamp } from '@/utils/dates'
 
 export default {
   components: {
@@ -22,14 +24,16 @@ export default {
   props: ["theme"], //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
   data() {
     return {
+      selectedRoom: null,
+      loadingRooms: false,
       rooms: [],
       messages: [],
       messagesLoaded: false,
-			start: null,
+      start: null,
       end: null,
       roomsListeners: [],
-			listeners: [],
-      currentUserId: 1,
+      listeners: [],
+      currentUserId: "5f2ed1c620806f9c4fadc693",
       menuActions: [
         {
           //sluzi za gumb na tri veritkalne tocke, ako ces menuActionHandler event za custom akciju
@@ -181,46 +185,106 @@ export default {
     };
   },
   mounted() {
-    this.fetchRooms(), this.fetchUsers();
+    this.fetchRooms(), this.fetchUsers()
   },
   methods: {
-		resetRooms() {
-			this.loadingRooms = true
-			this.rooms = []
-			this.roomsListeners.forEach(listener => listener())
-			this.resetMessages()
-		},
-		resetMessages() {
-			this.messages = []
-			this.messagesLoaded = false
-			this.start = null
-			this.end = null
-			this.listeners.forEach(listener => listener())
-			this.listeners = []
+    resetRooms() {
+      this.loadingRooms = false;
+      this.rooms = [];
+      this.roomsListeners.forEach((listener) => listener());
+      this.resetMessages();
+    },
+    resetMessages() {
+      this.messages = [];
+      this.messagesLoaded = false;
+      this.start = null;
+      this.end = null;
+      this.listeners.forEach((listener) => listener());
+      this.listeners = [];
     },
     async fetchRooms() {
       this.resetRooms();
-      var roomData = await Rooms.getAll();
-      console.log(roomData);
-    },    
-    async fetchMessages({room, options = {}}){
-      console.log(room);
-      if (options.reset) this.resetMessages()
+      const rooms = await Rooms.getUserRooms(this.currentUserId);
+      console.log(rooms);
+      const roomList = [];
+      const rawRoomUsers = [];
+      rooms.forEach((room) => {
+        roomList[room.roomId.$oid] = {
+          roomId: room.roomId.$oid,
+          roomName: room.roomName,
+          messages: room.messages,
+          users: [],
+        };
+        const rawUsers = [];
+        room.users.map((userId) => {
+          const promise = Users.getOne(userId.$oid).then((user) => {
+            return {
+              _id: user[0].id.$oid,
+              username: user[0].username,
+              roomId: room.roomId.$oid,
+            };
+          });
+          rawUsers.push(promise);
+        });
+        rawUsers.map((users) => rawRoomUsers.push(users));
+      });
+      const users = await Promise.all(rawRoomUsers);
+
+      users.map((user) => {
+        roomList[user.roomId].users.push(user);
+      });
+
+      const formattedRooms = [];
+      Object.keys(roomList).forEach((key) => {
+        const room = roomList[key];
+        const roomContacts = room.users.filter(
+          (user) => user._id !== this.currentUserId
+        );
+        room.roomName = room.roomName + " - " +
+          roomContacts.map((user) => user.username).join(", ") || "Myself";
+        const roomAvatar =
+          roomContacts.length === 1 && roomContacts[0].avatar
+            ? roomContacts[0].avatar
+            : require("@/assets/logo.png");
+        formattedRooms.push({
+          ...{
+            roomId: key,
+            avatar: roomAvatar,
+            ...room,
+          },
+        });
+      });
+      this.rooms = this.rooms.concat(formattedRooms);
+      this.loadingRooms = false;
+    },
+    async fetchMessages({ room }) {
+      const messageList = [];
+      let iterator = 0;
+      let messages = await Messages.getRoomMessages(room.roomId);
+
+      messages.forEach((message) => {
+        messageList[iterator] = {
+          _id: message.id.$oid,
+          content: message.content,
+          sender_id: message.sender_id.$oid
+        }
+        iterator++
+      })
+      this.messages = messageList;
+    },
+    async fetchUsers() {
+      var userData = await Users.getAll();
+      console.log(userData);
+    },
+    async fetchAllMessages() {
       var messageData = await Messages.getAll();
       console.log(messageData);
     },
-    fetchUsers() {
-      Users.getAll().then((response) => {
-        let data = response.data;
-        return data;
-      });
-    },
-    fetchFiles() {
-      Files.getAll().then((response) => {
-        let data = response.data;
-        return data;
-      });
-    },
+    // async fetchMessages({room, options = {}}){
+    //   console.log(room);
+    //   if (options.reset) this.resetMessages()
+    //   var messageData = await Messages.getAll();
+    // },
   },
 };
 </script>
