@@ -4,8 +4,10 @@
     :theme="theme"
     :currentUserId="currentUserId"
     :rooms="rooms"
+    :loadingRooms="loadingRooms"
     :messages="messages"
     :menuActions="menuActions"
+    @fetchMessages="fetchMessages"
   />
 </template>
 
@@ -13,6 +15,7 @@
 import ChatWindow from "vue-advanced-chat";
 import "vue-advanced-chat/dist/vue-advanced-chat.css";
 import { Rooms, Users, Messages } from "@/services";
+//import { parseTimestamp } from '@/utils/dates'
 
 export default {
   components: {
@@ -21,6 +24,8 @@ export default {
   props: ["theme"], //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
   data() {
     return {
+      selectedRoom: null,
+      loadingRooms: false,
       rooms: [],
       messages: [],
       messagesLoaded: false,
@@ -180,11 +185,11 @@ export default {
     };
   },
   mounted() {
-    this.fetchRooms(), this.fetchUsers(), this.fetchAllMessages();
+    this.fetchRooms(), this.fetchUsers()
   },
   methods: {
     resetRooms() {
-      this.loadingRooms = true;
+      this.loadingRooms = false;
       this.rooms = [];
       this.roomsListeners.forEach((listener) => listener());
       this.resetMessages();
@@ -203,52 +208,39 @@ export default {
       console.log(rooms);
       const roomList = [];
       const rawRoomUsers = [];
-      const rawMessages = [];
-
       rooms.forEach((room) => {
-        roomList[room.id.$oid] = {
-          id: room.id.$oid,
-          name: room.name,
+        roomList[room.roomId.$oid] = {
+          roomId: room.roomId.$oid,
+          roomName: room.roomName,
           messages: room.messages,
-          users: room.users,
+          users: [],
         };
         const rawUsers = [];
         room.users.map((userId) => {
           const promise = Users.getOne(userId.$oid).then((user) => {
             return {
-              id: user[0].id,
-              ...{
-                username: user[0].username,
-                chatRooms: room.id.$oid,
-              },
+              _id: user[0].id.$oid,
+              username: user[0].username,
+              roomId: room.roomId.$oid,
             };
           });
           rawUsers.push(promise);
         });
         rawUsers.map((users) => rawRoomUsers.push(users));
-        rawMessages.push();
       });
       const users = await Promise.all(rawRoomUsers);
-      users.map((user) => roomList[user.chatRooms].users.push(user));
-      //do ovdje ok
-      const roomMessages = await Promise.all(rawMessages).then((messages) => {
-        return messages.map((message) => {
-          return {
-            lastMessage: this.formatLastMessage(message),
-            roomId: message.roomId,
-          };
-        });
+
+      users.map((user) => {
+        roomList[user.roomId].users.push(user);
       });
-      roomMessages.map(
-        (ms) => (roomList[ms.roomId].lastMessage = ms.lastMessage)
-      );
+
       const formattedRooms = [];
       Object.keys(roomList).forEach((key) => {
         const room = roomList[key];
         const roomContacts = room.users.filter(
           (user) => user._id !== this.currentUserId
         );
-        room.roomName =
+        room.roomName = room.roomName + " - " +
           roomContacts.map((user) => user.username).join(", ") || "Myself";
         const roomAvatar =
           roomContacts.length === 1 && roomContacts[0].avatar
@@ -264,7 +256,21 @@ export default {
       });
       this.rooms = this.rooms.concat(formattedRooms);
       this.loadingRooms = false;
-      this.rooms.map((room, index) => this.listenLastMessage(room, index));
+    },
+    async fetchMessages({ room }) {
+      const messageList = [];
+      let iterator = 0;
+      let messages = await Messages.getRoomMessages(room.roomId);
+
+      messages.forEach((message) => {
+        messageList[iterator] = {
+          _id: message.id.$oid,
+          content: message.content,
+          sender_id: message.sender_id.$oid
+        }
+        iterator++
+      })
+      this.messages = messageList;
     },
     async fetchUsers() {
       var userData = await Users.getAll();

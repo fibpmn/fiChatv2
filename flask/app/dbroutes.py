@@ -16,8 +16,6 @@ def index():
     return 'Not good for you.'
 
 # sve sobe
-
-
 @app.route('/api/getRooms', methods=['GET'])
 def getRooms():
     try:
@@ -48,8 +46,6 @@ def getUserData(user_id):
         return json.dumps({'error': str(e)})
 
 # sve poruke
-
-
 @app.route('/api/getMessages', methods=['GET'])
 def getMessages():
     try:
@@ -65,14 +61,12 @@ def getRoomMessages(room_id):
     try:
         docs_list = list(mongo.db.messages.find({
             "room_id": ObjectId(room_id)
-        }))
+        }).sort("timestamp", -1))
         return json.dumps(docs_list, default=json_util.default)
     except Exception as e:
         return json.dumps({'error': str(e)})
 
-# sve poruke određenog user
-
-
+# sve poruke određenog usera
 @app.route('/api/getUserMessages/<user_id>', methods=['GET'])
 def getUserMessages(user_id):
     try:

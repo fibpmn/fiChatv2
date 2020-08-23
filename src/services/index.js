@@ -10,8 +10,8 @@ let Rooms = {
         let response = await Service.get('/api/getRooms')
         return response.data.map(doc => {
             return {
-                id: doc._id,
-                name: doc.name,
+                roomId: doc._id,
+                roomName: doc.name,
                 users: doc.users,
                 messages: doc.messages
             };
@@ -21,8 +21,8 @@ let Rooms = {
         let response = await Service.get(`/api/getUserRooms/${userid}`)
         return response.data.map(doc => {
             return {
-                id: doc._id,
-                name: doc.name,
+                roomId: doc._id,
+                roomName: doc.name,
                 users: doc.users,
                 messages: doc.messages
             };
@@ -33,6 +33,36 @@ let Rooms = {
 let Messages = {
     async getAll() {
         let response = await Service.get('/api/getMessages')
+        return response.data.map(doc => {
+            return {
+                id: doc._id,
+                room_id: doc.room_id,
+                content: doc.content,
+                sender_id: doc.sender_id,
+                timestamp: doc.timestamp,
+                seen: doc.seen
+            }
+        })
+    },
+    async getLastRoomMessage(roomid) {
+        let response = await Service.get(`/api/getRoomMessages/${roomid}`, {
+            params: {
+                _limit: 1
+            }
+        })
+        return response.data.map(doc => {
+            return {
+                id: doc._id,
+                room_id: doc.room_id,
+                content: doc.content,
+                sender_id: doc.sender_id,
+                timestamp: doc.timestamp,
+                seen: doc.seen
+            }
+        })
+    },
+    async getRoomMessages(roomid) {
+        let response = await Service.get(`/api/getRoomMessages/${roomid}`)
         return response.data.map(doc => {
             return {
                 id: doc._id,
