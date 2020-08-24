@@ -73,6 +73,25 @@ let Messages = {
                 seen: doc.seen
             }
         })
+    },
+    async addMessage(message){
+        Service.post('/api/addMessage',
+        {
+            room_id: message.room_id,
+            content: message.content,
+            sender_id: message.sender_id,
+            timestamp: message.timestamp,
+            seen: message.seen
+        })
+        .then(
+            response => {
+              console.log(response);
+            },
+            error => {
+              console.log(error);
+            }
+          );
+
     }
 }
 
