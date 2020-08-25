@@ -6,7 +6,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import { Camunda } from "@/services";
 
 export default {
@@ -22,10 +21,9 @@ export default {
     this.getTaskFormVariables();
   },
   methods: {
-    SendTaskVariables() {
+    async SendTaskVariables() {
       var temp = {};
       var variables = {};
-      var variablesObj = {};
       Object.entries(this.model).map(fieldM => {
         Object.entries(this.schema.fields).map(fieldS => {
           if (typeof fieldM[1] === "boolean") fieldS[1].inputType = "boolean";
@@ -39,19 +37,8 @@ export default {
         });
         Object.assign(variables, temp);
       });
-      variablesObj.variables = variables;
       var id = "2662a007-e649-11ea-b1fa-60f262e99a90";
-      axios
-        .post(`/api/task/complete/${id}`, { variables })
-        //post(`/api/task/assignee/${userid}`)
-        .then(
-          response => {
-            console.log("response", response.data);
-          },
-          error => {
-            console.log(error);
-          }
-        );
+      await Camunda.completeTaskForm(id, variables);
     },
     async getTaskFormVariables() {
       var key = "PrijavaZavrsnogRada";

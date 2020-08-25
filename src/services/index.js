@@ -15,6 +15,10 @@ let Camunda = {
             schema: doc.schema
         }
     },
+    async completeTaskForm(id, variables) {
+        let response = await Service.post(`/api/task/complete/${id}`, { variables })
+        return response.data
+    },
 }
 
 let Rooms = {
