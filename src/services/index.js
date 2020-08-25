@@ -5,6 +5,18 @@ let Service = axios.create({
     //timeout: 10000
 })
 
+
+let Camunda = {
+    async getTaskFormVariables(key) {
+        let response = await Service.get(`/api/task/xml/${key}`)
+        let doc = response.data
+        return {
+            model: doc.model,
+            schema: doc.schema
+        }
+    },
+}
+
 let Rooms = {
     async getAll() {
         let response = await Service.get('/api/getRooms')
@@ -109,4 +121,4 @@ let Users = {
 //     }
 // }
 
-export { Service, Rooms, Messages, Users }
+export { Service, Rooms, Messages, Users, Camunda }

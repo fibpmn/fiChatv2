@@ -14,7 +14,7 @@ mongo = PyMongo(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
 
 #@app.route('/api/<user>/instance/<key>', methods=["GET", "POST"]) change axios
-@app.route('/api/instance/<key>', methods=["GET", "POST"])
+@app.route('/api/process-instance/<key>', methods=["GET", "POST"])
 @cross_origin()
 def start_instance(key): #+ parametar user
     #businessKey = str(key) + str(user) ovo radi
@@ -22,6 +22,14 @@ def start_instance(key): #+ parametar user
         return "camundarest.get_process_instances_list(businessKey)"
     else:
         return camundarest.start_process_instance_key(key)
+
+@app.route('/api/process-instance/<id>', methods=["GET"])
+@cross_origin()
+def process_instance_variables(id):
+    if request.method == "GET":
+        return camundarest.get_process_instances_list(id)
+    else: 
+        return "nesto"
 
 @app.route('/api/task/<assignee>', methods=["GET", "POST"])
 @cross_origin()
@@ -41,6 +49,16 @@ def get_xml(key):
         return xmlparser.something(key)
     else:
         return "nesto"
+
+@app.route('/api/task/complete/<id>', methods=["POST"])
+@cross_origin()
+def complete_user_task(id):
+    if request.method == "POST":
+        data = request.get_json()
+        print("bpmnroutes", data['variables'])
+        return camundarest.complete_task(id, data['variables'])
+    else:
+        return "something"
 
 # @app.route('/api/task/form', methods=["POST"])
 # @cross_origin()

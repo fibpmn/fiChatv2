@@ -348,10 +348,10 @@ def get_process_instance_variable(id, varName, deserializeValue):
     else:
         return jsonify(response.text, response.status_code)
 
-def get_process_instance_variables_list(id, deserializeValue):
+def get_process_instance_variables_list(id):
     endpoint = url + "/process-instance/" + id + "/variables"
     params = {
-        "deserializeValue": deserializeValue
+        "deserializeValue": True
     }
     response = requests.request("GET", endpoint, params=params)
     if(response.status_code == 200):
@@ -445,7 +445,7 @@ def unclaim_task(id):
     else:
         return jsonify(response.text, response.status_code)
 
-def set_asignee(id, userId):
+def set_assignee(id, userId):
     endpoint = url + "/task/" + id + "/assignee"
     body = {
         "userId": userId
@@ -455,8 +455,6 @@ def set_asignee(id, userId):
         return jsonify(response.text, response.status_code)
     else:
         return jsonify(response.text, response.status_code)
-
-
 
 def get_task_formkey(id): # fali path za spajanje forme
     endpoint = url + "/task/" + id + "/form"
@@ -475,44 +473,6 @@ def get_deployed_form(id):
         return jsonify(response.text, response.status_code)
     elif(response.status_code == 403):
         return jsonify(response.text, response.status_code)    
-    else:
-        return jsonify(response.text, response.status_code)
-
-def submit_form(id, naslov, sazetak, dispozicija, literatura, obrazac): #nedovrseno
-    endpoint = url + "/task/" + id + "/submit-form"
-    body = {
-        "variables": {
-            "NaslovRada": {
-                "value": naslov,
-                "type": "String"
-            },
-            "SazetakRada": {
-                "value": sazetak,
-                "type": "String"
-            },
-            "DispozicijaRada": {
-                "value": dispozicija,
-                "type": "String"
-            },
-            "PopisLiterature": {
-                "value": literatura,
-                "type": "String"
-            },
-            "IspunjeniObrazac": {
-                "value": obrazac,
-                "type": "boolean"
-            },
-            # "Mentori": {
-            #     "value": mentori,
-            #     "type": "String"
-            # }
-        }
-    }
-    response = requests.request("POST", endpoint, json=body)
-    if(response.status_code == 204):
-        return jsonify(response.text, response.status_code)
-    elif(response.status_code == 400):
-        return jsonify(response.text, response.status_code)
     else:
         return jsonify(response.text, response.status_code)
 
@@ -637,51 +597,36 @@ def get_process_xml(key):
     else:
         return response.text, response.status_code
 
-# def post_process_instance_variable_binary():
-#     endpoint = url + "/process-instance/" + id + "/variables/" + varName + "/data"
-#     body = {
-#         "valueType": valueType,
-#     }
-#     files = {
-#         "data": {
-#             "filename"
-#         }
-#     }
+def complete_task(id, vars):
+    endpoint = url + "/task/" + id + "/complete"
+    print("PRIJE camundarest: ", vars)
+    body = {
+        "variables": vars,
+        "withVariablesInReturn": True
+    }
+    print("POSLIJE camundarest: ", vars)
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 200):
+        return response.text
+    else:
+        error = jsonify(response.text, response.status_code)
+        return error
+
+def submit_task_form(id, vars):
+    endpoint = url + "/task/" + id + "/submit-form"
+    body = {
+        "variables": vars,
+        "withVariablesInReturn": True
+    }
+    print("camundarest: ", vars)
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 200):
+        return response.text
+    else:
+        error = jsonify(response.text, response.status_code)
+        return error
 
 
-
-
-
-# def complete_task(id):                                #Mozda rijesiti vanjskom formom, ja se iskreno nadam
-#     endpoint = url + "/task/" + id + "/complete"
-#     pepe = uzmi_varijable()
-#     body = {
-#         "variables": {
-#             "naslov": {"value": "Naslov", "type": "String"},
-#             "sazetak": {"value": "Sazetak", "type": "String"},
-#             "mentori": [{"value": "Nikola Tankovic", "type": "String"},    
-#                        {"value": "Darko Etinger", "type": "String"},
-#                        {"value": "Sinisa Milicic", "type": "String"},
-#             ]
-#         }
-#     }
-#             # "mentori": {"value": ["Nikola Tankovic", "Darko Etinger", "Sinisa Milicic"], 
-#             #              "type": "Object", 
-#             #              "valueInfo": {
-#             #                   "objectTypeName": "JSON",
-#             #                   "serializationDataFormat": "JSON"
-#             #             }},
-
-#     response = requests.request("POST", endpoint, json=body)
-#     if(response.status_code == 204):
-#         return jsonify("Request successful", response.status_code)
-#         return jsonify(response.text, response.status_code)
-#     else:
-#         error = jsonify(response.text, response.status_code)
-#         return error
-
-
-#handle external task error
 ###### TESTIRANJE
 @app.route("/api", methods=["GET", "POST", "DELETE", "PUT"])
 # def nesto9():

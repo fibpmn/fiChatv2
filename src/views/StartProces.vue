@@ -60,7 +60,7 @@ export default {
       else
         return "Nope";
       axios.defaults.baseURL = "http://localhost:5000";
-      axios.post(`/api/instance/${key}`, {
+      axios.post(`/api/process-instance/${key}`, {
       })
       .then(
         response => {
