@@ -9,6 +9,14 @@ let Service = axios.create({
 let Camunda = {
     //async na bazu -> getUser(), treba nesto u maniri ToniID, moramo se dogovoriti oko nomenklature jer trebam namjestiti u camundi
     //async na bazu -> getProcessDefinitionKeys(), {key: key, value: "PrijavaZavrsnogRada"}, {key: key, value: UpisNaDiplomskiStudij}
+    //completeTaskForm ->
+    // {
+    //     "VariableName": {
+    //         "value": "Vrijednost",
+    //         "type": pr. "String",
+    //         "label": "Unesi blabla"
+    //     }
+    // }
 
     async getTaskFormVariables(key) {
         let response = await Service.get(`/api/task/xml/${key}`)
