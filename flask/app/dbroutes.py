@@ -54,6 +54,18 @@ def getMessages():
     except Exception as e:
         return json.dumps({'error': str(e)})
 
+@app.route('/api/addMessage', methods=['POST'])
+@cross_origin()
+def addMessage():
+    try:
+        data = request.get_json()
+        data["sender_id"] = ObjectId(data["sender_id"])
+        data["room_id"] = ObjectId(data["room_id"])
+        mongo.db.messages.insert_one(data)
+        return "ok"
+    except Exception as e:
+        return json.dumps({'error': str(e)})
+
 
 # sve poruke određene sobe
 @app.route('/api/getRoomMessages/<room_id>', methods=['GET'])

@@ -7,6 +7,7 @@
     :loadingRooms="loadingRooms"
     :messages="messages"
     :menuActions="menuActions"
+    @sendMessage="sendMessage"
     @fetchMessages="fetchMessages"
   />
 </template>
@@ -25,7 +26,7 @@ export default {
   data() {
     return {
       selectedRoom: null,
-      loadingRooms: false,
+      loadingRooms: true,
       rooms: [],
       messages: [],
       messagesLoaded: false,
@@ -185,11 +186,14 @@ export default {
     };
   },
   mounted() {
-    this.fetchRooms(), this.fetchUsers()
+    this.fetchRooms()
+  },
+  destroyed() {
+    this.resetRooms();
   },
   methods: {
     resetRooms() {
-      this.loadingRooms = false;
+      this.loadingRooms = true;
       this.rooms = [];
       this.roomsListeners.forEach((listener) => listener());
       this.resetMessages();
@@ -240,8 +244,10 @@ export default {
         const roomContacts = room.users.filter(
           (user) => user._id !== this.currentUserId
         );
-        room.roomName = room.roomName + " - " +
-          roomContacts.map((user) => user.username).join(", ") || "Myself";
+        room.roomName =
+          room.roomName +
+            " - " +
+            roomContacts.map((user) => user.username).join(", ") || "Myself";
         const roomAvatar =
           roomContacts.length === 1 && roomContacts[0].avatar
             ? roomContacts[0].avatar
@@ -257,28 +263,34 @@ export default {
       this.rooms = this.rooms.concat(formattedRooms);
       this.loadingRooms = false;
     },
-    async fetchMessages({ room }) {
+    async fetchMessages({ room, options = {} }) {
+      if (options.reset) this.resetMessages();
+
       const messageList = [];
       let iterator = 0;
+      if (this.end && !this.start) return (this.messagesLoaded = true);
       let messages = await Messages.getRoomMessages(room.roomId);
-
+      this.selectedRoom = room.roomId;
       messages.forEach((message) => {
         messageList[iterator] = {
           _id: message.id.$oid,
           content: message.content,
-          sender_id: message.sender_id.$oid
-        }
-        iterator++
-      })
+          sender_id: message.sender_id.$oid,
+        };
+        iterator++;
+      });
       this.messages = messageList;
     },
-    async fetchUsers() {
-      var userData = await Users.getAll();
-      console.log(userData);
-    },
-    async fetchAllMessages() {
-      var messageData = await Messages.getAll();
-      console.log(messageData);
+
+    sendMessage({ content, roomId }) {
+      const message = {
+        room_id: roomId,
+        sender_id: this.currentUserId,
+        content,
+        timestamp: new Date(),
+        seen: true
+      };
+      Messages.addMessage(message);
     },
     // async fetchMessages({room, options = {}}){
     //   console.log(room);
