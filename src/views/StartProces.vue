@@ -27,7 +27,7 @@
             <v-btn
               tile
               depressed
-              @click.prevent="sendVariables"
+              @click.prevent="StartProcessInstance"
               type="submit"
               class="ma-2 signbtn"
               outlined
@@ -41,7 +41,8 @@
 </template>
 
 <script>
-import axios from "axios";
+import { Camunda } from "@/services";
+
 export default {
   components: {
   },
@@ -53,23 +54,26 @@ export default {
       Informacije: false,
     }
   },
+  //treba dohvatiti usera
+  //traba dohvatiti key process definitiona
   methods: {
-    sendVariables() {
-      if(this.PrijavaZavrsni == true) 
-        var key = "PrijavaZavrsnogRada";
-      else
-        return "Nope";
-      axios.defaults.baseURL = "http://localhost:5000";
-      axios.post(`/api/process-instance/${key}`, {
-      })
-      .then(
-        response => {
-          console.log(response);
-        },
-        error => {
-          console.log(error);
-        }
-      );
+    async StartProcessInstance(key) {
+      await Camunda.StartProcessInstance(key);
+      // if(this.PrijavaZavrsni == true) 
+      //   key = "PrijavaZavrsnogRada";
+      // else
+      //   return "Nope";
+      // axios.defaults.baseURL = "http://localhost:5000";
+      // axios.post(`/api/process-instance/${key}`, {
+      // })
+      // .then(
+      //   response => {
+      //     console.log(response);
+      //   },
+      //   error => {
+      //     console.log(error);
+      //   }
+      // );
     }
   }
 }

@@ -1,22 +1,33 @@
 import axios from 'axios'
 
+
 let Service = axios.create({
     baseURL: 'http://localhost:5000',
     //timeout: 10000
 })
 
+let Auth = {
+    async RegisterUser(data) {
+        let response = await Service.post('/api/users/register', { data })
+        return response.data;
+    },
+    async LoginUser(data) {
+        let response = await Service.post('/api/users/login', { data })
+        localStorage.setItem('usertoken', response.data.token)
+        return "OK"
+    },
+}
+
 
 let Camunda = {
-    //async na bazu -> getUser(), treba nesto u maniri ToniID, moramo se dogovoriti oko nomenklature jer trebam namjestiti u camundi
-    //async na bazu -> getProcessDefinitionKeys(), {key: key, value: "PrijavaZavrsnogRada"}, {key: key, value: UpisNaDiplomskiStudij}
-    //completeTaskForm ->
-    // {
-    //     "VariableName": {
-    //         "value": "Vrijednost",
-    //         "type": pr. "String",
-    //         "label": "Unesi blabla"
-    //     }
-    // }
+    async StartProcessInstance(key) {
+        if(this.PrijavaZavrsni == true) 
+            key = "PrijavaZavrsnogRada";
+        else
+            return "Nope";
+        await Service.post(`/api/process-instance/${key}`, {
+        })
+    },
 
     async getTaskFormVariables(key) {
         let response = await Service.get(`/api/task/xml/${key}`)
@@ -155,4 +166,4 @@ let Users = {
 //     }
 // }
 
-export { Service, Rooms, Messages, Users, Camunda }
+export { Service, Rooms, Messages, Users, Camunda, Auth }

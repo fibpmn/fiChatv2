@@ -5,26 +5,28 @@
     permanent
     right
     background
-    
     fixed
     :clipped="true"
     color="blue lighten-1"
-  ><!-- mini-variant expand-on-hover blue lighten-5 -->
+    src="https://images.unsplash.com/photo-1567346953362-1bb30e3c10ed?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1491&q=80"
+  >
+    <!-- <v-img src="https://wallpaper-house.com/wallpaper-id-342348.php" height="100%"></v-img> -->
+    <!-- mini-variant expand-on-hover blue lighten-5 -->
     <v-list>
-        <v-list-item style="align-center">
-          <img class="pa-3" src="/Logo.png" />
-        </v-list-item>
-        </v-list>
-        <v-list>
-        <v-divider color="blue lighten-5"></v-divider>
-        <v-list-item-group>
+      <v-list-item style="align-center">
+        <img class="pa-3" src="/Logo.png" />
+      </v-list-item>
+    </v-list>
+    <v-list>
+      <v-divider color="blue lighten-5"></v-divider>
+      <v-list-item-group>
         <v-list-item>
           <v-avatar size="36" color="blue lighten-2">
-            <span class="white--text">TS</span>  <!-- Get initials -->
+            <span class="white--text">{{initials}}</span>
           </v-avatar>
           <v-list-item-content class="justify-center ml-5 white--text">
-            <v-list-item-title >{{"Ime"}} </v-list-item-title> <!-- Get user first name -->
-            <v-list-item-title>{{"Prezime"}}</v-list-item-title> <!-- Get user last name -->
+            <v-list-item-title>{{firstName}}</v-list-item-title>
+            <v-list-item-title>{{lastName}}</v-list-item-title>
           </v-list-item-content>
           <v-btn color="blue lighten-2" small fab depressed>
             <v-icon color="white">mdi-account-edit</v-icon>
@@ -32,8 +34,8 @@
         </v-list-item>
       </v-list-item-group>
       <v-divider color="blue lighten-5"></v-divider>
-      </v-list>
-      <v-list>
+    </v-list>
+    <v-list>
       <v-list-item-group two-line>
         <v-list-item>
           <v-list-item-avatar>
@@ -51,80 +53,35 @@
     <v-list-item disabled></v-list-item>
     <v-list-item disabled></v-list-item>
     <v-list-item disabled></v-list-item>
-    <v-divider color="white"></v-divider>
-    <v-list>
-      <v-btn class="white--text" block large tile depressed @click="showact=!showact" color="blue lighten-1">Aktivni procesi</v-btn>
-      <div v-show="showact">
-        <v-list-item-group v-model="active" color="primary">
-          <v-list-item v-for="(active, i) in active_processes" :key="i">
-            <v-list-item-content>
-            <v-list-item-title v-text="active.title"></v-list-item-title>
-            <v-list-item-subtitle v-text="active.subtitle"></v-list-item-subtitle>
-            <v-list-item-subtitle v-text="active.text"></v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list-item-group>
-      </div>
-    </v-list>
-    <v-divider color="blue lighten-5"></v-divider>
-    <v-list>
-      <v-btn class="white--text" block large tile depressed @click="showinac=!showinac" color="blue lighten-1">Povijesni procesi</v-btn>
-      <div v-show="showinac">
-        <v-list-item-group v-model="inactive" color="primary">
-          <v-list-item v-for="(inactive, i) in inactive_processes" :key="i" three-line>
-            <v-list-item-content>
-                <v-list-item-title v-text="inactive.title"></v-list-item-title>
-                <v-list-item-subtitle v-text="inactive.subtitle"></v-list-item-subtitle>
-                <v-list-item-subtitle v-text="inactive.text"></v-list-item-subtitle>
-          </v-list-item-content>
-          </v-list-item>
-        </v-list-item-group>
-      </div>
-    </v-list>
-    <v-divider color="blue lighten-5"></v-divider>
   </v-navigation-drawer>
 </template>
 
 <script>
+import jwtDecode from "jwt-decode";
 export default {
   name: "Drawer",
   //photo: null,
-  data: () => ({
-    inactive: 0,
-    active: 0,
-    i: 0,
-    showact: false,
-    showinac: false,
-    active_processes: [
-      {
-        title: "Title Pepe",
-        subtitle: "Subtitle Pepe1",
-        text: "Text Pepe"
-      },
-      {
-        title: "Title Pepe",
-        subtitle: "Subtitle Pepe1",
-        text: "Text Pepe"
-      }
-    ],
-    inactive_processes: [
-      {
-        title: "Title Pepe",
-        subtitle: "Subtitle Pepe1",
-        text: "Text Pepe"
-      },
-      {
-        title: "Title Pepe",
-        subtitle: "Subtitle Pepe1",
-        text: "Text Pepe"
-      },
-      {
-        title: "Title Pepe",
-        subtitle: "Subtitle Pepe1",
-        text: "Text Pepe"
-      }
-    ]
-  })
+  data() {
+    const token = localStorage.usertoken;
+    const decoded = jwtDecode(token);
+    return {
+      initials: "",
+      firstName: decoded.identity.firstName,
+      lastName: decoded.identity.lastName,
+    };
+  },
+  mounted() {
+    this.getInitials();
+  },
+  methods: {
+    getInitials() {
+      let name = this.firstName
+      let surname = this.lastName
+      this.initials = name.charAt(0) + surname.charAt(0)
+      console.log(this.initials)
+      return this.initials
+    }
+  }
 };
 </script>
 
@@ -136,7 +93,7 @@ export default {
   z-index: 9999 !important;
 }
 .v-list {
-    padding: 0px !important;
+  padding: 0px !important;
 }
 // .v-navigation-drawer__content{
 //     box-shadow: 0px 2px #90CAF9 !important;
