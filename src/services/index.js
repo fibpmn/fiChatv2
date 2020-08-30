@@ -40,7 +40,6 @@ let Rooms = {
                 roomId: doc._id,
                 roomName: doc.name,
                 users: doc.users,
-                messages: doc.messages
             };
         });
     },
@@ -51,7 +50,6 @@ let Rooms = {
                 roomId: doc._id,
                 roomName: doc.name,
                 users: doc.users,
-                messages: doc.messages
             };
         });
     }
@@ -72,11 +70,7 @@ let Messages = {
         })
     },
     async getLastRoomMessage(roomid) {
-        let response = await Service.get(`/api/getRoomMessages/${roomid}`, {
-            params: {
-                _limit: 1
-            }
-        })
+        let response = await Service.get(`/api/getLastRoomMessage/${roomid}`)
         return response.data.map(doc => {
             return {
                 id: doc._id,
