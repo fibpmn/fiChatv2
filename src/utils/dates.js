@@ -1,8 +1,8 @@
 export const parseTimestamp = (timestamp, format = '') => {
 	if (!timestamp) return
 
-	const date = timestamp.seconds
-		? new Date(timestamp.seconds * 1000)
+	const date = timestamp
+		? new Date(timestamp)
 		: timestamp
 
 	if (format === 'HH:mm') {

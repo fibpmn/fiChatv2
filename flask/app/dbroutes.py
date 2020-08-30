@@ -34,7 +34,7 @@ def getUsers():
     except Exception as e:
         return json.dumps({'error': str(e)})
 
-
+# uzmi za jednog usera
 @app.route('/api/getUserData/<user_id>', methods=['GET'])
 def getUserData(user_id):
     try:
@@ -54,18 +54,18 @@ def getMessages():
     except Exception as e:
         return json.dumps({'error': str(e)})
 
+# dodaj poruku
 @app.route('/api/addMessage', methods=['POST'])
 @cross_origin()
 def addMessage():
     try:
         data = request.get_json()
         data["sender_id"] = ObjectId(data["sender_id"])
-        data["room_id"] = ObjectId(data["room_id"])
+        data["room_id"] = ObjectId(data["room_id"])     
         mongo.db.messages.insert_one(data)
         return "ok"
     except Exception as e:
         return json.dumps({'error': str(e)})
-
 
 # sve poruke određene sobe
 @app.route('/api/getRoomMessages/<room_id>', methods=['GET'])
@@ -73,10 +73,22 @@ def getRoomMessages(room_id):
     try:
         docs_list = list(mongo.db.messages.find({
             "room_id": ObjectId(room_id)
-        }).sort("timestamp", -1))
+        }).sort("timestamp", 1))
         return json.dumps(docs_list, default=json_util.default)
     except Exception as e:
         return json.dumps({'error': str(e)})
+
+# uzmi zadnju poruku određene sobe
+@app.route('/api/getLastRoomMessage/<room_id>', methods=['GET'])
+def getLastRoomMessage(room_id):
+    try:
+        docs_list = list(mongo.db.messages.find({
+            "room_id": ObjectId(room_id)
+        }).sort("timestamp", -1).limit(1))
+        return json.dumps(docs_list, default=json_util.default)
+    except Exception as e:
+        return json.dumps({'error': str(e)})
+
 
 # sve poruke određenog usera
 @app.route('/api/getUserMessages/<user_id>', methods=['GET'])
