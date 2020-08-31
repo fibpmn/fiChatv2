@@ -1,6 +1,6 @@
 <template>
   <chat-window
-    height="calc(100vh - 80px)"
+    height="calc(100vh - 70px)"
     :theme="theme"
     :currentUserId="currentUserId"
     :rooms="rooms"
@@ -185,7 +185,6 @@ export default {
       const rawMessages = [];
 
       rooms.forEach((room) => {
-        debugger;
         roomList[room.roomId.$oid] = {
           roomId: room.roomId.$oid,
           roomName: room.roomName,
@@ -223,7 +222,6 @@ export default {
         });
       });
       roomMessages.map((ms) => {
-        debugger;
         roomList[ms.roomId].lastMessage = ms.lastMessage;
       });
 

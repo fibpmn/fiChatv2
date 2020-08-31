@@ -18,14 +18,20 @@ let Auth = {
     },
 }
 
-
 let Camunda = {
-    async StartProcessInstance(key) {
-        if(this.PrijavaZavrsni == true) 
-            key = "PrijavaZavrsnogRada";
-        else
-            return "Nope";
-        await Service.post(`/api/process-instance/${key}`, {
+    async getProcesses() {
+        let response = await Service.get('/api/process-definitions')
+        return response.data.map(doc => {
+            return {
+                id: doc._id,
+                name: doc.name,
+                key: doc.key,
+            }
+        })
+    },
+
+    async StartProcessInstance(key, username) {
+        await Service.post(`/api/process-instance/${key}`, { username
         })
     },
 

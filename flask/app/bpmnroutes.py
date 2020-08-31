@@ -10,26 +10,40 @@ from app import camundarest
 from app import xmlparser
 from bson import BSON, json_util
 from flask_cors import cross_origin
+from flask_jwt_extended import jwt_required
 mongo = PyMongo(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-#@app.route('/api/<user>/instance/<key>', methods=["GET", "POST"]) change axios
+
+@app.route('/api/process-definitions', methods=["GET"])
+def get_processes():
+    if request.method == "GET":
+        docs_list = list(mongo.db.processes.find())
+        print(docs_list)
+        return json.dumps(docs_list, default=json_util.default)
+
+
+# @app.route('/api/<user>/instance/<key>', methods=["GET", "POST"]) change axios
+# @jwt_required() u header treba dodati jwt token https://codeburst.io/jwt-authorization-in-flask-c63c1acf4eeb
 @app.route('/api/process-instance/<key>', methods=["GET", "POST"])
 @cross_origin()
-def start_instance(key): #+ parametar user
-    #businessKey = str(key) + str(user) ovo radi
+def start_instance(key):
+    data = request.get_json()
+    user = data['username']
+    print(user)
     if request.method == "GET":
         return "camundarest.get_process_instances_list(businessKey)"
     else:
-        return camundarest.start_process_instance_key(key)
+        return camundarest.start_process_instance_key(key, user)
 
 @app.route('/api/process-instance/<id>', methods=["GET"])
 @cross_origin()
 def process_instance_variables(id):
     if request.method == "GET":
         return camundarest.get_process_instances_list(id)
-    else: 
+    else:
         return "nesto"
+
 
 @app.route('/api/task/<assignee>', methods=["GET", "POST"])
 @cross_origin()
@@ -42,6 +56,7 @@ def get_current_task(assignee):
     else:
         return "nesto"
 
+
 @app.route('/api/task/xml/<key>', methods=["GET"])
 @cross_origin()
 def get_xml(key):
@@ -49,6 +64,7 @@ def get_xml(key):
         return xmlparser.something(key)
     else:
         return "nesto"
+
 
 @app.route('/api/task/complete/<id>', methods=["POST"])
 @cross_origin()
@@ -95,7 +111,7 @@ def complete_user_task(id):
 #     # variables = {
 #     #     "Naslov": naslov,
 #     #     "Sazetak": sazetak,
-#     #     "Mentori": 
+#     #     "Mentori":
 #     # }
 #     if request.method == 'POST':
 #         camundarest.start_process_instance_key("PrijavaZavrsnogRada", "somethingNew", True)
@@ -107,8 +123,8 @@ def complete_user_task(id):
 #     else:
 #         varijable = request.get_json()
 #         return varijable
-        #Treba povuci usera jer je on prvi assignee na prvom tasku, to usera ukljuciti u poziv start instance u varijablama
-        
+        # Treba povuci usera jer je on prvi assignee na prvom tasku, to usera ukljuciti u poziv start instance u varijablama
+
 
 # @app.route('/api/start-instance', methods=['POST', 'GET'])
 # @cross_origin()
@@ -116,9 +132,8 @@ def complete_user_task(id):
 #     if request.method == 'POST':
 #         camundarest.start_process_instance_key("PrijavaZavrsnogRada", "", False)
 #         print("Something")
-#         return "yas"   
+#         return "yas"
 #     else:
 #         return "Pepe"
     # print(varijable)
-    # return varijable 
-
+    # return varijable

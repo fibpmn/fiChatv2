@@ -183,23 +183,18 @@ def start_process_instance_id(id, businessKey, withVariablesInReturn):
     else:
         return jsonify(response.text, response.status_code)
 
-def start_process_instance_key(key): #user
+def start_process_instance_key(key, user): #user
     endpoint = url + "/process-definition/key/" + key + "/start"
-    businessKey = str(key) + "ToniID" #str(user)
-    # variables = {
-    #          "name": "varName", 
-    #          "value": "ToniID", #user
-    #          "type": "String" 
-    # }
+    businessKey = str(key) + str(user)
     body = {
         "variables": {
             "initiator": {
-                "value": "ToniID", #user
+                "value": user,
                 "type": "String"
             }
         },
         "businessKey": businessKey,
-        "withVariablesInReturn": True #true
+        "withVariablesInReturn": True
     }
     response = requests.request("POST", endpoint, json=body)
     if(response.status_code == 200):

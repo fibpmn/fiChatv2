@@ -8,15 +8,17 @@
     fixed
     :clipped="true"
     color="blue lighten-1"
+    expand-on-hover=""
     src="https://images.unsplash.com/photo-1567346953362-1bb30e3c10ed?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1491&q=80"
   >
     <!-- <v-img src="https://wallpaper-house.com/wallpaper-id-342348.php" height="100%"></v-img> -->
     <!-- mini-variant expand-on-hover blue lighten-5 -->
-    <v-list>
+    <!-- <v-list>
       <v-list-item style="align-center">
         <img class="pa-3" src="/Logo.png" />
       </v-list-item>
-    </v-list>
+    </v-list> -->
+        <v-list-item disabled></v-list-item>
     <v-list>
       <v-divider color="blue lighten-5"></v-divider>
       <v-list-item-group>
@@ -42,8 +44,8 @@
             <img src="/Fi.png" />
           </v-list-item-avatar>
           <v-list-item-content class="justify-center white--text">
-            <v-list-item-title>{{"Fi"}}</v-list-item-title>
-            <v-list-item-title>Always Online</v-list-item-title>
+            <v-list-item-title>{{username}}</v-list-item-title>
+            <v-list-item-title>Fi Always Online</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list-item-group>
@@ -57,17 +59,15 @@
 </template>
 
 <script>
-import jwtDecode from "jwt-decode";
+
 export default {
   name: "Drawer",
-  //photo: null,
   data() {
-    const token = localStorage.usertoken;
-    const decoded = jwtDecode(token);
     return {
+      firstName: localStorage.getItem("firstName"),
+      lastName: localStorage.getItem("lastName"),
+      username: localStorage.getItem("username"),
       initials: "",
-      firstName: decoded.identity.firstName,
-      lastName: decoded.identity.lastName,
     };
   },
   mounted() {
@@ -78,7 +78,6 @@ export default {
       let name = this.firstName
       let surname = this.lastName
       this.initials = name.charAt(0) + surname.charAt(0)
-      console.log(this.initials)
       return this.initials
     }
   }

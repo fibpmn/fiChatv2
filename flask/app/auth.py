@@ -7,6 +7,10 @@ from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from flask_jwt_extended import create_access_token
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_refresh_token_required
+from flask_jwt_extended import create_refresh_token
+from flask_jwt_extended import get_jwt_identity
 
 mongo = PyMongo(app)
 bcrypt = Bcrypt(app)
@@ -35,9 +39,7 @@ def register():
         'group': group,
         'chatRooms': chat_rooms,
         'messages': messages
-
     })
-
     new_user = users.find_one({'_id': user_id})
     result = {'email': new_user['email'] + ' je registriran'}
     return jsonify({'Rezultat': result})
@@ -56,6 +58,7 @@ def login():
                 'firstName': response['firstName'],
                 'lastName': response['lastName'],
                 'email': response['email'],
+                'username': response['username']
             })
             result = jsonify({'token': access_token})
         else: 
@@ -63,3 +66,10 @@ def login():
     else:
         result = jsonify({'Rezultat': 'Nema rezultata'})
     return result
+
+            # refresh_token = create_refresh_token(identity= {
+            #     'firstName': response['firstName'],
+            #     'lastName': response['lastName'],
+            #     'email': response['email'],
+            #     'username': response['username']
+            # })

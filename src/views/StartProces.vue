@@ -5,10 +5,10 @@
       <v-sheet class="pa-12 mt-10 mb-10" elevation="4" tile>
         <v-row class="justify-center align-center mb-4">
           <v-avatar tile height="auto" width="150px" class="mb-3">
-            <img src="" alt="LOGO" />
+            <img src alt="LOGO" />
           </v-avatar>
         </v-row>
-        <v-form @submit.prevent="sendVariables">
+        <v-form @submit.prevent="StartProcessInstance">
           <v-text-field
             v-model="start"
             label="Test"
@@ -20,9 +20,15 @@
             dense
             class="ml-4 mr-4 mb-4"
           ></v-text-field>
-          <v-checkbox class="my-3 ml-4 mr-4 mb-4" v-model="PrijavaZavrsni" label="Prijava završnog rada"></v-checkbox>
-          <v-checkbox class="my-3 ml-4 mr-4 mb-4" v-model="UpisDiplomski" label="Upis na diplomski studij"></v-checkbox>
-          <v-checkbox class="my-3 ml-4 mr-4 mb-4" v-model="Informacije" label="Želim informacije"></v-checkbox>
+          <div>
+            <v-checkbox
+              class="my-3 ml-4 mr-4 mb-4"
+              v-model="item.value"
+              v-for="item in model"
+              :label="item.name"
+              :key="item.key"
+            ></v-checkbox>
+          </div>
           <div class="text-center pt-0 pb-0 my-3">
             <v-btn
               tile
@@ -42,39 +48,43 @@
 
 <script>
 import { Camunda } from "@/services";
+import jwtDecode from "jwt-decode";
 
 export default {
-  components: {
-  },
+  components: {},
   data() {
+      const token = localStorage.usertoken;
+      const decoded = jwtDecode(token);
+      localStorage.getItem("username", decoded.identity.username)
     return {
       start: "",
-      PrijavaZavrsni: false,
-      UpisDiplomski: false,
-      Informacije: false,
-    }
+      username: decoded.identity.username,
+      model: []
+    };
   },
-  //treba dohvatiti usera
-  //traba dohvatiti key process definitiona
+  mounted() {
+    this.getProcesses();
+  },
   methods: {
-    async StartProcessInstance(key) {
-      await Camunda.StartProcessInstance(key);
-      // if(this.PrijavaZavrsni == true) 
-      //   key = "PrijavaZavrsnogRada";
-      // else
-      //   return "Nope";
-      // axios.defaults.baseURL = "http://localhost:5000";
-      // axios.post(`/api/process-instance/${key}`, {
-      // })
-      // .then(
-      //   response => {
-      //     console.log(response);
-      //   },
-      //   error => {
-      //     console.log(error);
-      //   }
-      // );
+    async StartProcessInstance() {
+      var key = ""
+      this.model.forEach(index => {
+        if(index.value == true)
+          key = index.key
+      })
+      await Camunda.StartProcessInstance(key, this.username);
+    },
+    async getProcesses() {
+      this.processes = await Camunda.getProcesses();
+      this.processes.map(process => {
+        const element = {
+        name: process.name,
+        key: process.key,
+        value: false, 
+        }
+        this.model.push(element)
+      });
     }
   }
-}
+};
 </script>
