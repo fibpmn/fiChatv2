@@ -1,5 +1,5 @@
 <template>
-  <chat-window
+  <chat-window 
     height="calc(100vh - 70px)"
     :theme="theme"
     :currentUserId="currentUserId"
@@ -22,7 +22,7 @@ export default {
   components: {
     ChatWindow,
   },
-  props: ["theme"], //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
+  props: ["theme", "auth"], //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
   data() {
     return {
       selectedRoom: null,
@@ -34,7 +34,7 @@ export default {
       end: null,
       roomsListeners: [],
       listeners: [],
-      currentUserId: "5f2ed1c620806f9c4fadc693",
+      currentUserId: "5f2ed1c620806f9c4fadc693", //auth
       styles: {
         general: {
           color: "#0a0a0a",
@@ -258,6 +258,7 @@ export default {
       let iterator = 0;
       let messages = await Messages.getRoomMessages(room.roomId);
       this.selectedRoom = room.roomId;
+      await Rooms.updateUserField(this.currentUserId, "selectedRoom", room.roomId);
       messages.forEach((message) => {
         if (this.selectedRoom !== room.roomId) return;
         if (!messages) this.messagesLoaded = true;

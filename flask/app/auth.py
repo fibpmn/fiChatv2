@@ -57,7 +57,8 @@ def login():
                 'firstName': response['firstName'],
                 'lastName': response['lastName'],
                 'email': response['email'],
-                'username': response['username']
+                'username': response['username'],
+                'id': str(response['_id'])
             })
             result = jsonify({'token': access_token})
         else: 
