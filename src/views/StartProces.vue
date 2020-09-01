@@ -68,11 +68,14 @@ export default {
   methods: {
     async StartProcessInstance() {
       var key = ""
+      var name = ""
       this.model.forEach(index => {
-        if(index.value == true)
+        if(index.value == true) {
           key = index.key
+          name = index.name
+        }
       })
-      await Camunda.StartProcessInstance(key, this.username);
+      await Camunda.StartProcessInstance(key, name, this.username);
     },
     async getProcesses() {
       this.processes = await Camunda.getProcesses();

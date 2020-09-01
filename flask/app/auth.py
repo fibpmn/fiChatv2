@@ -29,7 +29,6 @@ def register():
     group = []
     chat_rooms = []
     messages = []
-
     user_id = users.insert({
         'firstName': first_name,
         'lastName': last_name,

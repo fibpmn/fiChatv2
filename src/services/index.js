@@ -30,9 +30,8 @@ let Camunda = {
         })
     },
 
-    async StartProcessInstance(key, username) {
-        await Service.post(`/api/process-instance/${key}`, { username
-        })
+    async StartProcessInstance(key, name, username) {
+        await Service.post(`/api/process-instance/${key}`, {name, username})
     },
 
     async getTaskFormVariables(key) {

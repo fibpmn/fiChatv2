@@ -113,28 +113,31 @@ def getUserRooms(user_id):
     except Exception as e:
         return json.dumps({'error': str(e)})
 
-
-
-#### bpmn
-# @app.route('/api/getRooms', methods=['GET'])
-# def getRooms():
-#     try:
-#         docs_list = list(mongo.db.chatRooms.find())
-#         return json.dumps(docs_list, default=json_util.default)
-#     except Exception as e:
-#         return json.dumps({'error': str(e)})
-
+#PRIMJER
 # @app.route('/api/addMessage', methods=['POST'])
 # @cross_origin()
 # def addMessage():
 #     try:
 #         data = request.get_json()
 #         data["sender_id"] = ObjectId(data["sender_id"])
-#         data["room_id"] = ObjectId(data["room_id"])
+#         data["room_id"] = ObjectId(data["room_id"])     
 #         mongo.db.messages.insert_one(data)
 #         return "ok"
 #     except Exception as e:
 #         return json.dumps({'error': str(e)})
+
+#### bpmn
+
+@app.route('/api/room', methods=['POST'])
+@cross_origin()
+def create_room(room):
+    try:
+        mongo.db.chatRooms.insert_one(room)
+        print("Soba je kreirana")
+        return "ok"
+    except Exception as e:
+        return json.dumps({'Error': str(e)})
+    
 
 # @app.route('/api/addVariables/<room_id>', methods=['PUT'])
 # @cross_origin()

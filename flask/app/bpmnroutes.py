@@ -2,15 +2,13 @@ from app import app
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_pymongo import PyMongo
-import requests
-import json
-import time
-import asyncio
 from app import camundarest
 from app import xmlparser
+from app import dbroutes
 from bson import BSON, json_util
 from flask_cors import cross_origin
-from flask_jwt_extended import jwt_required
+import requests, json, time
+
 mongo = PyMongo(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
 
@@ -25,16 +23,28 @@ def get_processes():
 
 # @app.route('/api/<user>/instance/<key>', methods=["GET", "POST"]) change axios
 # @jwt_required() u header treba dodati jwt token https://codeburst.io/jwt-authorization-in-flask-c63c1acf4eeb
-@app.route('/api/process-instance/<key>', methods=["GET", "POST"])
+@app.route('/api/process-instance/<key>', methods=["POST"])
 @cross_origin()
 def start_instance(key):
-    data = request.get_json()
-    user = data['username']
-    print(user)
-    if request.method == "GET":
-        return "camundarest.get_process_instances_list(businessKey)"
-    else:
-        return camundarest.start_process_instance_key(key, user)
+    user = request.get_json()['username'] #dobavi username s frontenda za camundu i bazu
+    process_name = request.get_json()['name'] #dobavi ime procesa s frontenda za bazu
+    data = json.loads(camundarest.start_process_instance_key(key, user)) #pokreni proces u camundi
+    user_exists = list(mongo.db.users.find({"username": user})) #trazi usera u bazi
+    if user_exists[0]['_id'] != None:                           #cudna mi je ova logika, ali radi
+        try:
+            room = {
+             "name": process_name,
+             "users": [user_exists[0]['_id']],
+             "businessKey": data['businessKey'],
+             "processInstanceId": data["id"],
+             "variables": {}
+            }
+            dbroutes.create_room(room)
+        except Exception as e:
+            return json.dumps({'Error': str(e)})
+    else: 
+        return "Korisnik ne postoji"
+    return "ok"
 
 @app.route('/api/process-instance/<id>', methods=["GET"])
 @cross_origin()
