@@ -113,6 +113,22 @@ def getUserRooms(user_id):
     except Exception as e:
         return json.dumps({'error': str(e)})
 
+#updejtaj field korisnika
+@app.route('/api/updateUserField', methods=['POST'])
+@cross_origin()
+def updateUserField():
+    try:
+        data = request.get_json()
+        user_id = ObjectId(data["user"]) 
+        values = {'$set': {
+            data["field"]: data["value"]
+        }}
+        query = {"_id": user_id}
+        mongo.db.users.update_one(query, values)
+        return "ok"
+    except Exception as e:
+        return json.dumps({'error': str(e)})
+
 #PRIMJER
 # @app.route('/api/addMessage', methods=['POST'])
 # @cross_origin()

@@ -1,8 +1,8 @@
 <template>
   <v-app>
-    <Drawer />
-    <Header />
-    <Main />
+    <Drawer :firstName="firstName" :lastName="lastName" :username="username" :id="id" :auth="auth" />
+    <Header :firstName="firstName" :lastName="lastName" :username="username" :id="id" :auth="auth" />
+    <Main :firstName="firstName" :lastName="lastName" :username="username" :id="id" :auth="auth" />
   </v-app>
 </template>
 
@@ -10,7 +10,6 @@
 import Drawer from "./components/Drawer";
 import Header from "./components/Header";
 import Main from "./components/Main";
-import EventBus from "./components/EventBus";
 import jwtDecode from "jwt-decode";
 
 export default {
@@ -21,24 +20,30 @@ export default {
     Main
   },
   data() {
-      const token = localStorage.usertoken;
-      const decoded = jwtDecode(token);
-      localStorage.setItem("firstName", decoded.identity.firstName)
-      localStorage.setItem("lastName", decoded.identity.lastName)
-      localStorage.setItem("username", decoded.identity.username)
     return {
-      firstName: decoded.identity.firstName,
-      lastName: decoded.identity.lastName,
-      username: decoded.identity.username,
-      auth: "",
-      user: ""
+      firstName: "",
+      lastName: "",
+      username: "",
+      id: "",
+      auth: false
     };
   },
   mounted() {
-    EventBus.$on("logged-in", status => {
-      console.log(status)
-      this.auth = status;
-    });
+    if(localStorage.getItem("usertoken") !== null) {
+      this.auth=true
+      const token = localStorage.usertoken;
+      const decoded = jwtDecode(token);
+      localStorage.setItem("firstName", decoded.identity.firstName)
+      this.firstName = decoded.identity.firstName,
+      localStorage.setItem("lastName", decoded.identity.lastName)
+      this.lastName = decoded.identity.lastName,
+      localStorage.setItem("username", decoded.identity.username)
+      this.username = decoded.identity.username,
+      localStorage.setItem("id", decoded.identity.id)
+      this.id = decoded.identity.id
+    } else {
+      this.auth=false
+    }
   }
 };
 </script>

@@ -39,7 +39,7 @@ export default {
       );
     },
     async emitMethod() {
-      EventBus.$emit("logged-in", "loggedin");
+      EventBus.$emit("logged-in", "User has logged in.");
     }
   }
 };

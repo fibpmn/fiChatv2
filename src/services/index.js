@@ -31,7 +31,7 @@ let Camunda = {
     },
 
     async StartProcessInstance(key, name, username) {
-        await Service.post(`/api/process-instance/${key}`, {name, username})
+        await Service.post(`/api/process-instance/${key}`, { name, username })
     },
 
     async getTaskFormVariables(username) {
@@ -73,6 +73,22 @@ let Rooms = {
                 users: doc.users,
             };
         });
+    },
+
+    updateUserField(user, field, value) {
+        Service.post('/api/updateUserField', {
+            user: user,
+            field: field,
+            value: value
+        })
+            .then(
+                response => {
+                    response;
+                },
+                error => {
+                    console.log(error);
+                }
+            );
     }
 }
 
@@ -116,23 +132,23 @@ let Messages = {
             }
         })
     },
-    async addMessage(message){
+    addMessage(message) {
         Service.post('/api/addMessage',
-        {
-            room_id: message.room_id,
-            content: message.content,
-            sender_id: message.sender_id,
-            timestamp: message.timestamp,
-            seen: message.seen
-        })
-        .then(
-            response => {
-              console.log(response);
-            },
-            error => {
-              console.log(error);
-            }
-          );
+            {
+                room_id: message.room_id,
+                content: message.content,
+                sender_id: message.sender_id,
+                timestamp: message.timestamp,
+                seen: message.seen
+            })
+            .then(
+                response => {
+                    response;
+                },
+                error => {
+                    console.log(error);
+                }
+            );
 
     }
 }

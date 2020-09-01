@@ -44,8 +44,8 @@
             <img src="/Fi.png" />
           </v-list-item-avatar>
           <v-list-item-content class="justify-center white--text">
-            <v-list-item-title>{{username}}</v-list-item-title>
-            <v-list-item-title>Fi Always Online</v-list-item-title>
+            <v-list-item-title>{{"Fi"}}</v-list-item-title>
+            <v-list-item-title>Always Online</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list-item-group>
@@ -62,11 +62,9 @@
 
 export default {
   name: "Drawer",
+  props: ['firstName', 'lastName', 'username', 'auth'],
   data() {
     return {
-      firstName: localStorage.getItem("firstName"),
-      lastName: localStorage.getItem("lastName"),
-      username: localStorage.getItem("username"),
       initials: "",
     };
   },
