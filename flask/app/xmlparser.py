@@ -15,14 +15,13 @@ camunda = 'http://camunda.org/schema/1.0/bpmn'
 
 ET.register_namespace(bpmn, 'http://www.omg.org/spec/BPMN/20100524/MODEL')
 
+#potrebno je rijesiti ove namespaceove
 
-def something(key):  # fali parametar form_key
-    # key = "PrijavaZavrsnogRada"
-    res = camundarest.get_process_xml(key)  # res gets dictionary
+def parse(process_definition_id, form_key):
+    res = camundarest.get_process_xml(process_definition_id)  # res gets dictionary
     xml = res['bpmn20Xml']  # xml is stored in value of res
     tree = ET.ElementTree(ET.fromstring(xml))
     root = tree.getroot()
-    form_key = "prijava_teme"  # formKey is needed for form identification
     find_form = root.findtext(".//userTask", form_key)
     if(find_form != ""):
         element = root.find('.//{http://camunda.org/schema/1.0/bpmn}formData')
@@ -44,7 +43,6 @@ def something(key):  # fali parametar form_key
                         model[child.attrib['id']] = ''
                     fields.append(temp)
                     temp = {}
-                    print(model)
         schema1 = {'fields' : fields}
         bigobj1 = {'model' : model, 'schema': schema1}
         bigobj = json.dumps(bigobj1, ensure_ascii=False).encode('utf-8')

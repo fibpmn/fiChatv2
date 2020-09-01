@@ -36,6 +36,7 @@ export default {
   },
   mounted() {
     EventBus.$on("logged-in", status => {
+      console.log(status)
       this.auth = status;
     });
   }
