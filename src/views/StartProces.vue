@@ -73,6 +73,8 @@ export default {
         if(index.value == true) {
           key = index.key
           name = index.name
+          console.log("Front key", index.key)
+          console.log("Front name", index.name)
         }
       })
       await Camunda.StartProcessInstance(key, name, this.username);

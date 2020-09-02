@@ -154,3 +154,10 @@ def create_room(room):
     except Exception as e:
         return json.dumps({'Error': str(e)})
     
+@app.route('/api/process-definitions', methods=["GET"])
+def get_processes():
+    if request.method == "GET":
+        docs_list = list(mongo.db.processes.find())
+        print(docs_list)
+        return json.dumps(docs_list, default=json_util.default)
+

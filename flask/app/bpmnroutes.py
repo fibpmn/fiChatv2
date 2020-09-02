@@ -5,29 +5,22 @@ from flask_pymongo import PyMongo
 from app import camundarest
 from app import xmlparser
 from app import dbroutes
-from bson import BSON, json_util
+from bson import BSON, json_util, ObjectId
 from flask_cors import cross_origin
 import requests, json, time
 
 mongo = PyMongo(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-
-@app.route('/api/process-definitions', methods=["GET"])
-def get_processes():
-    if request.method == "GET":
-        docs_list = list(mongo.db.processes.find())
-        print(docs_list)
-        return json.dumps(docs_list, default=json_util.default)
-
-
-# @app.route('/api/<user>/instance/<key>', methods=["GET", "POST"]) change axios
-# @jwt_required() u header treba dodati jwt token https://codeburst.io/jwt-authorization-in-flask-c63c1acf4eeb
+#pokreni instancu procesa
 @app.route('/api/process-instance/<key>', methods=["POST"])
 @cross_origin()
 def start_instance(key):
+    print(key)
     user = request.get_json()['username'] #dobavi username s frontenda za camundu i bazu
+    print(user)
     process_name = request.get_json()['name'] #dobavi ime procesa s frontenda za bazu
+    print(process_name)
     data = json.loads(camundarest.start_process_instance_key(key, user)) #pokreni proces u camundi
     user_exists = list(mongo.db.users.find({"username": user})) #trazi usera u bazi
     if user_exists[0]['_id'] != None:                           #cudna mi je ova logika, ali radi
@@ -47,48 +40,56 @@ def start_instance(key):
         return "Korisnik ne postoji"
     return "ok"
 
+#vrati task varijable
 @app.route('/api/task/<user>', methods=["GET"])
 @cross_origin()
 def user_task_form(user):
     if request.method == "GET":
-        user_object = mongo.db.users.find_one({"username": user}) #pronadi uid usera
-        check_in_chat_rooms = mongo.db.chatRooms.find_one({"users": user_object['_id']}) #dobavi chatRoom s tim userom uid
-        process_definition_id = check_in_chat_rooms['definitionId']                     #process_definition_id za get user task form key
-        task = json.loads(camundarest.get_user_task_form(process_definition_id, user))  #dobavi user task form key
+        user_object = mongo.db.users.find_one({"username": user})
+        selected_room = user_object['selectedRoom'] 
+        definition_id = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room)})['definitionId']
+        task = json.loads(camundarest.get_user_task_form(definition_id, user))  #dobavi user task form key
         form_key = task[0]['formKey']                                                   #process form key za pronalazak user task forma u xmlu
-        return xmlparser.parse(process_definition_id, form_key)
+        return xmlparser.parse(definition_id, form_key)
     else:
         return "Ok" #treba compleatati task ovdje
 
+#posalji task varijable
 @app.route('/api/task/complete/<assignee>')
 @cross_origin()
 def get_task_id(assignee):
     user_object = mongo.db.users.find_one({"username": assignee})
-    check_in_chat_rooms = mongo.db.chatRooms.find_one({"users": user_object['_id']})
-    process_definition_id = check_in_chat_rooms['definitionId']
-    task = json.loads(camundarest.get_user_task_form(process_definition_id, assignee))
+    selected_room = user_object['selectedRoom'] 
+    definition_id = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room)})['definitionId']
+    task = json.loads(camundarest.get_user_task_form(definition_id, assignee))
     task_id = task[0]['id']
     return task_id
 
-@app.route('/api/process-instance/<id>', methods=["GET"])
+@app.route('/api/task/complete/<id>', methods=["POST"])
 @cross_origin()
-def process_instance_variables(id):
-    if request.method == "GET":
-        return camundarest.get_process_instances_list(id)
-    else:
-        return "nesto"
+def complete_user_task(id):
+    data = request.get_json()
+    print(data)
+    print("POSALJI MENTORA NA BAZU U CHAT ROOM: ", data['variables']['Mentor']['value'], "\n") #imas DarkoEtinger -> pronadi oid
+    #jedan call u bazu za pronaci uid
+    #drugi call za inseriranje u chatroom uid-a
+    print("bpmnroutes", data['variables'])
+    #ovdje ce ici neka serijalizacija
+    #camundarest.complete_task(id, data['variables'])
+    return "ok"
 
 
-@app.route('/api/task/<assignee>', methods=["GET", "POST"])
-@cross_origin()
-def get_current_task(assignee):
-    if request.method == "GET":
-        ass = camundarest.get_task_list(assignee)
-        temp = json.loads(ass)
-        print(temp[0]['id'])
-        return camundarest.get_task_form_variables(temp[0]['id'])
-    else:
-        return "nesto"
+
+# @app.route('/api/task/<assignee>', methods=["GET", "POST"])
+# @cross_origin()
+# def get_current_task(assignee):
+#     if request.method == "GET":
+#         ass = camundarest.get_task_list(assignee)
+#         temp = json.loads(ass)
+#         print(temp[0]['id'])
+#         return camundarest.get_task_form_variables(temp[0]['id'])
+#     else:
+#         return "nesto"
 
 
 # @app.route('/api/task/xml/<key>', methods=["GET"])
@@ -100,15 +101,6 @@ def get_current_task(assignee):
 #         return "nesto"
 
 
-@app.route('/api/task/complete/<id>', methods=["POST"])
-@cross_origin()
-def complete_user_task(id):
-    if request.method == "POST":
-        data = request.get_json()
-        print("bpmnroutes", data['variables'])
-        return camundarest.complete_task(id, data['variables'])
-    else:
-        return "something"
 
 # @app.route('/api/task/form', methods=["POST"])
 # @cross_origin()

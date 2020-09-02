@@ -92,6 +92,8 @@ def start_process_instance_id(id, businessKey, withVariablesInReturn):
         return jsonify(response.text, response.status_code)
 
 def start_process_instance_key(key, user): #user
+    print(key)
+    print(user)
     endpoint = url + "/process-definition/key/" + key + "/start"
     businessKey = str(key) + str(user)
     body = {
@@ -105,6 +107,7 @@ def start_process_instance_key(key, user): #user
         "withVariablesInReturn": True
     }
     response = requests.request("POST", endpoint, json=body)
+    print(response.text)
     if(response.status_code == 200):
         return response.text
     elif(response.status_code == 400):

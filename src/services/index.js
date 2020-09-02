@@ -31,6 +31,7 @@ let Camunda = {
     },
 
     async StartProcessInstance(key, name, username) {
+        debugger;
         await Service.post(`/api/process-instance/${key}`, { name, username })
     },
 

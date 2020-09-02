@@ -1,6 +1,6 @@
 <template>
   <chat-window 
-    height="calc(100vh - 70px)"
+    height="calc(100vh - 90px)"
     :theme="theme"
     :currentUserId="currentUserId"
     :rooms="rooms"
@@ -34,7 +34,7 @@ export default {
       end: null,
       roomsListeners: [],
       listeners: [],
-      currentUserId: "5f2ed1c620806f9c4fadc693", //auth
+      currentUserId: "",//localStorage.getItem('id'), //auth
       styles: {
         general: {
           color: "#0a0a0a",
