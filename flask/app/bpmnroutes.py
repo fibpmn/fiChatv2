@@ -37,6 +37,7 @@ def start_instance(key):
              "users": [user_exists[0]['_id']],
              "businessKey": data['businessKey'],
              "processInstanceId": data["id"],
+             "definitionId": data["definitionId"],
              "variables": {}
             }
             dbroutes.create_room(room)
@@ -45,6 +46,29 @@ def start_instance(key):
     else: 
         return "Korisnik ne postoji"
     return "ok"
+
+@app.route('/api/task/<user>', methods=["GET"])
+@cross_origin()
+def user_task_form(user):
+    if request.method == "GET":
+        user_object = mongo.db.users.find_one({"username": user}) #pronadi uid usera
+        check_in_chat_rooms = mongo.db.chatRooms.find_one({"users": user_object['_id']}) #dobavi chatRoom s tim userom uid
+        process_definition_id = check_in_chat_rooms['definitionId']                     #process_definition_id za get user task form key
+        task = json.loads(camundarest.get_user_task_form(process_definition_id, user))  #dobavi user task form key
+        form_key = task[0]['formKey']                                                   #process form key za pronalazak user task forma u xmlu
+        return xmlparser.parse(process_definition_id, form_key)
+    else:
+        return "Ok" #treba compleatati task ovdje
+
+@app.route('/api/task/complete/<assignee>')
+@cross_origin()
+def get_task_id(assignee):
+    user_object = mongo.db.users.find_one({"username": assignee})
+    check_in_chat_rooms = mongo.db.chatRooms.find_one({"users": user_object['_id']})
+    process_definition_id = check_in_chat_rooms['definitionId']
+    task = json.loads(camundarest.get_user_task_form(process_definition_id, assignee))
+    task_id = task[0]['id']
+    return task_id
 
 @app.route('/api/process-instance/<id>', methods=["GET"])
 @cross_origin()
@@ -67,13 +91,13 @@ def get_current_task(assignee):
         return "nesto"
 
 
-@app.route('/api/task/xml/<key>', methods=["GET"])
-@cross_origin()
-def get_xml(key):
-    if request.method == "GET":
-        return xmlparser.something(key)
-    else:
-        return "nesto"
+# @app.route('/api/task/xml/<key>', methods=["GET"])
+# @cross_origin()
+# def get_xml(key):
+#     if request.method == "GET":
+#         return xmlparser.something(key)
+#     else:
+#         return "nesto"
 
 
 @app.route('/api/task/complete/<id>', methods=["POST"])

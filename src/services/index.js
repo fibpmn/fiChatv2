@@ -34,14 +34,19 @@ let Camunda = {
         await Service.post(`/api/process-instance/${key}`, { name, username })
     },
 
-    async getTaskFormVariables(key) {
-        let response = await Service.get(`/api/task/xml/${key}`)
+    async getTaskFormVariables(username) {
+        let response = await Service.get(`/api/task/${username}`)
         let doc = response.data
         return {
             model: doc.model,
             schema: doc.schema
         }
     },
+    async getTaskId(assignee) {
+        let response = await Service.get(`/api/task/complete/${assignee}`) 
+        return response.data
+    },
+
     async completeTaskForm(id, variables) {
         let response = await Service.post(`/api/task/complete/${id}`, { variables })
         return response.data

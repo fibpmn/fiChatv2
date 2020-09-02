@@ -154,17 +154,3 @@ def create_room(room):
     except Exception as e:
         return json.dumps({'Error': str(e)})
     
-
-# @app.route('/api/addVariables/<room_id>', methods=['PUT'])
-# @cross_origin()
-# def addTaskVariables(room_id):
-#     try:
-#         docs_list = list(mongo.db.chatRooms.find({
-#             "room_id": ObjectId(room_id)
-#         }))
-#         data = request.get_json()
-#         mongo.db.chatRooms.fi
-#         print(data)
-#         return 'Request successful'
-#     except Exception as e:
-#         return json.dumps({'Error': str(e)})

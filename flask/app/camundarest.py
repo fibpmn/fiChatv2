@@ -7,6 +7,21 @@ url = 'http://localhost:8080/engine-rest'
 
 #make handle_response_codes function
 
+
+def get_user_task_form(processDefinitionId, user):
+    endpoint = url + '/task'
+    params = {
+        "processDefinitionId": processDefinitionId,
+        "assignee": user,
+        "assigned": "true",
+        "active": "true"
+    }
+    response = requests.request("GET", endpoint, params=params)
+    if(response.status_code == 200):
+        return response.text
+    else: 
+        return response.text, response.status_code
+
 def get_process_definition(id):
     endpoint = url + "/process-definition/" + id
     response = requests.request("GET", endpoint)
@@ -288,8 +303,8 @@ def complete_external_task(id, workerId, mentori):
     else:
         return jsonify(response.text, response.status_code)
 
-def get_process_xml(key):
-    endpoint = url + "/process-definition/key/" + key + "/xml"
+def get_process_xml(id):
+    endpoint = url + "/process-definition/" + id + "/xml"
     headers = {"Content-Type": "application/xml"}
     response = requests.request("GET", endpoint, headers=headers) 
     if(response.status_code == 200):
@@ -301,12 +316,12 @@ def get_process_xml(key):
 
 def complete_task(id, vars):
     endpoint = url + "/task/" + id + "/complete"
-    print("PRIJE camundarest: ", vars)
+    #print("PRIJE camundarest: ", vars)
     body = {
         "variables": vars,
         "withVariablesInReturn": True
     }
-    print("POSLIJE camundarest: ", vars)
+    #print("POSLIJE camundarest: ", vars)
     response = requests.request("POST", endpoint, json=body)
     if(response.status_code == 200):
         return response.text
