@@ -10,6 +10,5 @@
 export default {
     name: 'Main',
     props: ['firstName', 'lastName', 'username', 'id', 'auth'],
-
 }
 </script>
