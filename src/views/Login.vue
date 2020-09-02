@@ -16,32 +16,40 @@
 
 <script>
 import { Auth } from "@/services";
-import router from '../router'
-import EventBus from "../components/EventBus.vue";
+import router from "../router";
+import jwtDecode from "jwt-decode";
 
 export default {
   name: "Login",
   data() {
     return {
       email: "",
-      password: ""
+      password: "",
     };
   },
   methods: {
     async login() {
       var data = {
         email: this.email,
-        password: this.password
+        password: this.password,
       };
-      await Auth.LoginUser(data)
-      .then(this.emitMethod(),
-      router.push({ name: 'Chat' })
+      await Auth.LoginUser(data).then(
+        this.$store.commit("setToTrue"),
+        this.setVariables(),
+        router.push({ name: "Chat" })
       );
     },
-    async emitMethod() {
-      EventBus.$emit("logged-in", "User has logged in.");
-    }
-  }
+    setVariables() {
+      const token = localStorage.getItem("usertoken")
+      const decoded = jwtDecode(token);
+      this.$store.dispatch("setFirstName", decoded.identity.firstName);
+      this.$store.dispatch("setLastName", decoded.identity.lastName);
+      this.$store.dispatch("setUsername", decoded.identity.username);
+      this.$store.dispatch("setId", decoded.identity.id);
+      var initials = (decoded.identity.firstName).charAt(0)+(decoded.identity.lastName).charAt(0)
+      this.$store.dispatch("setInitials", initials)
+    },
+  },
 };
 </script>
 

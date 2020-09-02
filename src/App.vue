@@ -1,6 +1,13 @@
 <template>
   <v-app>
-    <Drawer :firstName="firstName" :lastName="lastName" :username="username" :id="id" :auth="auth" />
+    <Drawer
+      :firstName="firstName"
+      :lastName="lastName"
+      :username="username"
+      :id="id"
+      :auth="auth"
+      :initials="initials"
+    />
     <Header :firstName="firstName" :lastName="lastName" :username="username" :id="id" :auth="auth" />
     <Main :firstName="firstName" :lastName="lastName" :username="username" :id="id" :auth="auth" />
   </v-app>
@@ -17,34 +24,61 @@ export default {
   components: {
     Drawer,
     Header,
-    Main
+    Main,
   },
   data() {
-    return {
-      firstName: "",
-      lastName: "",
-      username: "",
-      id: "",
-      auth: false
-    };
+    return {};
   },
   mounted() {
-    if(localStorage.getItem("usertoken") !== null) {
-      this.auth=true
-      const token = localStorage.usertoken;
-      const decoded = jwtDecode(token);
-      localStorage.setItem("firstName", decoded.identity.firstName)
-      this.firstName = decoded.identity.firstName,
-      localStorage.setItem("lastName", decoded.identity.lastName)
-      this.lastName = decoded.identity.lastName,
-      localStorage.setItem("username", decoded.identity.username)
-      this.username = decoded.identity.username,
-      localStorage.setItem("id", decoded.identity.id)
-      this.id = decoded.identity.id
-    } else {
-      this.auth=false
-    }
-  }
+    this.reAuth();
+  },
+  computed: {
+    auth(auth) {
+      auth = this.$store.state.auth;
+      return auth;
+    },
+    firstName(firstName) {
+      firstName = this.$store.state.firstName;
+      return firstName;
+    },
+    lastName(lastName) {
+      lastName = this.$store.state.lastName;
+      return lastName;
+    },
+    username(username) {
+      username = this.$store.state.username;
+      return username;
+    },
+    id(id) {
+      id = this.$store.state.id;
+      return id;
+    },
+    initials(initials) {
+      initials = this.$store.state.initials;
+      return initials;
+    },
+  },
+  methods: {
+    reAuth() {
+      if (localStorage.getItem("usertoken")) {
+        const token = localStorage.usertoken;
+        const decoded = jwtDecode(token);
+        this.$store.commit("setToTrue")
+        this.$store.dispatch("setFirstName", decoded.identity.firstName);
+        this.$store.dispatch("setLastName", decoded.identity.lastName);
+        this.$store.dispatch("setUsername", decoded.identity.username);
+        this.$store.dispatch("setId", decoded.identity.id);
+        var initials =
+          decoded.identity.firstName.charAt(0) +
+          decoded.identity.lastName.charAt(0);
+        this.$store.dispatch("setInitials", initials);
+      } else {
+        this.$store.dispatch("setFirstName", "Anonymous");
+        this.$store.dispatch("setUsername", "Anonymous");
+        this.$store.dispatch("setInitials", "A");
+      }
+    },
+  },
 };
 </script>
 

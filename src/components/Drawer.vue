@@ -62,22 +62,14 @@
 
 export default {
   name: "Drawer",
-  props: ['firstName', 'lastName', 'username', 'auth'],
+  props: ['firstName', 'lastName', 'username', 'auth', 'initials'],
   data() {
     return {
-      initials: "",
     };
   },
   mounted() {
-    this.getInitials();
   },
   methods: {
-    getInitials() {
-      let name = this.firstName
-      let surname = this.lastName
-      this.initials = name.charAt(0) + surname.charAt(0)
-      return this.initials
-    }
   }
 };
 </script>
