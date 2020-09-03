@@ -22,7 +22,7 @@ export default {
   components: {
     ChatWindow,
   },
-  props: ["theme", "auth"], //id trenutnog usera, pokupiti ga iz bpmna ->getuser()
+  props: ["theme", "auth"], 
   data() {
     return {
       selectedRoom: null,
@@ -34,7 +34,7 @@ export default {
       end: null,
       roomsListeners: [],
       listeners: [],
-      currentUserId: "",//localStorage.getItem('id'), //auth
+      currentUserId: localStorage.getItem('id'),//localStorage.getItem('id'), //auth
       styles: {
         general: {
           color: "#0a0a0a",

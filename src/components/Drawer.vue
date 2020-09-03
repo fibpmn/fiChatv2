@@ -133,6 +133,15 @@ export default {
   mounted() {
   },
   methods: {
+    logout() {
+      localStorage.removeItem("usertoken");
+      this.$store.commit("setToFalse");
+      this.$store.dispatch("setFirstName", "Anonymous");
+      this.$store.dispatch("setLastName", "");
+      this.$store.dispatch("setUsername", "Anonymous");
+      this.$store.dispatch("setId", "");
+      this.$store.dispatch("setInitials", "A");
+    },
   }
 };
 </script>
