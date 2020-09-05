@@ -19,6 +19,12 @@ let Auth = {
 }
 
 let Camunda = {
+    async getMentors() {
+        let response = await Service.get('/api/mentors')
+        let data = Object.values(response.data) 
+        return data;
+    },
+
     async getProcesses() {
         let response = await Service.get('/api/process-definitions')
         return response.data.map(doc => {
@@ -31,7 +37,6 @@ let Camunda = {
     },
 
     async StartProcessInstance(key, name, username) {
-        debugger;
         await Service.post(`/api/process-instance/${key}`, { name, username })
     },
 
@@ -43,13 +48,13 @@ let Camunda = {
             schema: doc.schema
         }
     },
-    async getTaskId(assignee) {
+    async getTaskIdForTaskCompletion(assignee) {
         let response = await Service.get(`/api/task/complete/${assignee}`) 
         return response.data
     },
 
-    async completeTaskForm(id, variables) {
-        let response = await Service.post(`/api/task/complete/${id}`, { variables })
+    async completeTaskForm(id, variables, user) {
+        let response = await Service.post(`/api/task/complete/${id}`, { variables, user })
         return response.data
     },
 }

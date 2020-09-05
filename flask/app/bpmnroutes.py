@@ -7,7 +7,7 @@ from app import xmlparser
 from app import dbroutes
 from bson import BSON, json_util, ObjectId
 from flask_cors import cross_origin
-import requests, json, time
+import requests, json, time, re
 
 mongo = PyMongo(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
@@ -31,7 +31,7 @@ def start_instance(key):
              "businessKey": data['businessKey'],
              "processInstanceId": data["id"],
              "definitionId": data["definitionId"],
-             "variables": {}
+             "variables": []
             }
             dbroutes.create_room(room)
         except Exception as e:
@@ -57,7 +57,7 @@ def user_task_form(user):
 #posalji task varijable
 @app.route('/api/task/complete/<assignee>')
 @cross_origin()
-def get_task_id(assignee):
+def get_task_id_for_task_completion(assignee):
     user_object = mongo.db.users.find_one({"username": assignee})
     selected_room = user_object['selectedRoom'] 
     definition_id = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room)})['definitionId']
@@ -69,14 +69,48 @@ def get_task_id(assignee):
 @cross_origin()
 def complete_user_task(id):
     data = request.get_json()
-    print(data)
-    print("POSALJI MENTORA NA BAZU U CHAT ROOM: ", data['variables']['Mentor']['value'], "\n") #imas DarkoEtinger -> pronadi oid
-    #jedan call u bazu za pronaci uid
-    #drugi call za inseriranje u chatroom uid-a
-    print("bpmnroutes", data['variables'])
-    #ovdje ce ici neka serijalizacija
-    #camundarest.complete_task(id, data['variables'])
-    return "ok"
+    user = data['user']
+    user_oid = ObjectId(mongo.db.users.find_one({"username": user})['_id'])
+    mentor_username = data['variables']['Mentor']['value']
+    mentor_oid = ObjectId(mongo.db.users.find_one({"username": mentor_username})['_id'])
+    print(mentor_oid)
+    #dodaj mentora u chatroom
+    print(user_oid)
+    query = ObjectId(mongo.db.chatRooms.find_one({"users": user_oid})['_id'])
+    print(query)
+    values = {'$addToSet': {
+        "users": mentor_oid
+    }}
+    mongo.db.chatRooms.update_one({"_id": query}, values)
+    #dodaj varijable u bazu
+    instance_variables = data['variables']
+    var_values = {
+        '$addToSet': {
+            "variables": instance_variables
+        }
+    }
+    #'$push': {#"variables": { '$each': [instance_variables]}
+    mongo.db.chatRooms.update_one({"_id": query}, var_values)
+    return camundarest.complete_task(id, instance_variables)
+
+
+
+@app.route('/api/mentors', methods=["GET"])
+@cross_origin()
+def get_mentors():
+    profesori_object = mongo.db.groups.find_one({"name": "Profesori"})
+    mentori = profesori_object['members']
+    ime_prezime = []
+    for i in range(len(mentori)):
+        mentor_username = mongo.db.users.find_one({"_id": mentori[i]})['username']
+        element = ''
+        for i, slovo in enumerate(mentor_username):
+            if i and slovo.isupper():
+                element += ' '
+            element += slovo
+        ime_prezime.append(element)    
+    temp = {"temp": ime_prezime}
+    return temp 
 
 
 

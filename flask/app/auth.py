@@ -26,7 +26,6 @@ def register():
     email = request.get_json()['data']['email']
     username = str(first_name) + str(last_name)
     password = bcrypt.generate_password_hash(request.get_json()['data']['password']).decode('utf-8')
-    group = []
     chat_rooms = []
     messages = []
     user_id = users.insert({
@@ -35,9 +34,8 @@ def register():
         'email': email,
         'password': password,
         'username': username,
-        'group': group,
         'chatRooms': chat_rooms,
-        'messages': messages
+        'messages': messages,
     })
     new_user = users.find_one({'_id': user_id})
     result = {'email': new_user['email'] + ' je registriran'}

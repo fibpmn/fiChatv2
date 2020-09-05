@@ -1,8 +1,14 @@
 <template>
-  <v-card>
-    <vue-form-generator :schema="schema" :model="model" :options="formOptions"></vue-form-generator>
-    <v-btn @click="SendTaskVariables">Pošalji</v-btn>
-  </v-card>
+  <v-row>
+    <v-col class="col-3"></v-col>
+    <v-col class="col-6">
+      <v-sheet elevation="1" tile color="white" class="mt-16 pa-5">
+        <vue-form-generator :schema="schema" :model="model" :options="formOptions"></vue-form-generator>
+        <v-btn class="ml-2 mt-1" tile depressed @click="SendTaskVariables">Pošalji</v-btn>
+      </v-sheet>
+    </v-col>
+    <v-col div="col-3"></v-col>
+  </v-row>
 </template>
 
 <script>
@@ -12,18 +18,23 @@ import jwtDecode from "jwt-decode";
 export default {
   name: "UserTaskForm",
   data() {
-      const token = localStorage.usertoken;
-      const decoded = jwtDecode(token);
-      localStorage.getItem("username", decoded.identity.username)
+    const token = localStorage.usertoken;
+    const decoded = jwtDecode(token);
+    localStorage.getItem("username", decoded.identity.username);
     return {
       model: {},
       schema: {},
-      formOptions: {},
-      username: decoded.identity.username,
+      formOptions: {
+        validateAfterLoad: true,
+        validateAfterChanged: true,
+        validateAsync: true
+      },
+      username: decoded.identity.username
     };
   },
   mounted() {
     this.getTaskFormVariables();
+    this.getMentors();
   },
   methods: {
     async SendTaskVariables() {
@@ -42,16 +53,49 @@ export default {
         });
         Object.assign(variables, temp);
       });
-      let assignee = this.username
-      let id = await Camunda.getTaskId(assignee)
-      await Camunda.completeTaskForm(id, variables);
+      variables.Mentor.value = variables.Mentor.value.replace(/ /g,"")
+      let user = this.username;
+      let id = await Camunda.getTaskIdForTaskCompletion(user);
+      await Camunda.completeTaskForm(id, variables, user);
+    },
+    async getMentors() {
+      await Camunda.getMentors();
     },
     async getTaskFormVariables() {
-      var username = this.username
-      let data = await Camunda.getTaskFormVariables(username);
-      this.model = data.model;
-      this.schema = data.schema;
+      var username = this.username;
+      let data = await Camunda.getTaskFormVariables(username); //debugger;
+      var mentori = await Camunda.getMentors();
+      if (data.model.Mentor != null) {
+        for (let i = 0; i < data.schema.fields.length; i++) {
+          if (data.schema.fields[i].model == "Mentor") {
+            delete data.schema.fields[i].inputType;
+            data.schema.fields[i].type = "select";
+            data.schema.fields[i].values = mentori[0]; //generator zahtijeva array, problem unutarnje pretvorbe?
+          }
+        }
+        this.model = data.model;
+        this.schema = data.schema;
+      }
     }
   }
 };
 </script>
+
+<style lang="scss">
+.vue-form-generator {
+  padding: 10px 10px 10px 10px;
+}
+.form-control {
+  border-radius: 0px !important;
+}
+fieldset {
+  border-left-width: 0px;
+  border-left-style: solid;
+  border-top-width: 0px;
+  border-top-style: solid;
+  border-right-width: 0px;
+  border-right-style: solid;
+  border-bottom-width: 0px;
+  border-bottom-style: solid;
+}
+</style>

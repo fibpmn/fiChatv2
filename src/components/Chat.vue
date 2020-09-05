@@ -34,7 +34,7 @@ export default {
       end: null,
       roomsListeners: [],
       listeners: [],
-      currentUserId: localStorage.getItem('id'),//localStorage.getItem('id'), //auth
+      currentUserId: this.$store.state.id,//localStorage.getItem('id'), //auth
       styles: {
         general: {
           color: "#0a0a0a",
