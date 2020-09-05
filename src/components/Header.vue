@@ -1,25 +1,5 @@
 <template>
   <v-app-bar app clipped-right dense flat color="#060606">
-    <v-btn
-      v-show="auth"
-      tile
-      class="mr-3"
-      text
-      color="white"
-      to="/startproces"
-    >Start Process Instance</v-btn>
-    <v-btn
-      v-show="auth"
-      tile
-      class="mr-3"
-      text
-      color="white"
-      to="/usertaskform"
-    >First User Task Form</v-btn>
-    <v-btn v-show="!auth" tile class="mr-3" text color="white" to="/register">Registriraj se</v-btn>
-    <v-btn v-show="!auth" tile class="mr-3" text color="white" to="/login">Logiraj se</v-btn>
-    <v-btn v-show="auth" tile class="mr-3" text color="white" @click="logout">Odlogiraj se</v-btn>
-    <v-spacer></v-spacer>
     <img height="45px" width="auto" src="/Logo.png" />
   </v-app-bar>
 </template>
