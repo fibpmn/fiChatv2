@@ -11,8 +11,7 @@
   expand-on-hover
     src="https://images.unsplash.com/photo-1567346953362-1bb30e3c10ed?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1491&q=80"
   >
-  <!--    -->
-    <!-- <div v-show="auth"> -->
+    <div v-show="this.$store.state.auth">
     <v-list>
       <v-list-item-group>
         <v-list-item class="pl-2">
@@ -35,12 +34,11 @@
           </v-avatar>
           <v-list-item-content class="justify-center ml-3 white--text pt-2 pb-2">
             <v-list-item-title>{{"FI"}}</v-list-item-title>
-            <v-list-item-title>{{"BOT"}}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </v-list-item-group>
     </v-list>
-<!-- </div> -->
+</div>
 
     <v-divider color="white"></v-divider>
     <v-list-item v-show="auth" class="justify-center ml-5 white--text">
@@ -53,7 +51,7 @@
     <v-list-item disabled></v-list-item>
     <v-list-item disabled></v-list-item>
 
-    <!-- <div v-show="auth"> -->
+    <div v-show="this.$store.state.auth"> 
     <v-divider color="white"></v-divider>
     <v-list-item class="white--text pl-2">
       <v-list-item-avatar>
@@ -76,9 +74,9 @@
         <v-btn tile text color="white" class="pl-0">MOJ PROFIL</v-btn>
       </v-list-item-content>
     </v-list-item>
-  <!-- </div> -->
+  </div>
 
-   <!-- <div v-show="!auth"> -->
+   <div v-show="!this.$store.state.auth"> 
     <v-divider color="white"></v-divider>
     <v-list-item class="white--text pl-2">
       <v-list-item-avatar>
@@ -102,9 +100,9 @@
       </v-list-item-content>
     </v-list-item>
     <v-divider color="white"></v-divider>
-  <!-- </div> -->
+  </div>
     
-    <!-- <div v-show="auth" > -->
+    <div v-show="this.$store.state.auth">
     <v-divider color="white"></v-divider>
     <v-list-item class="white--text pl-2">
       <v-list-item-avatar>
@@ -117,7 +115,7 @@
       </v-list-item-content>
     </v-list-item>
     <v-divider color="white"></v-divider>
-    <!-- </div> -->
+    </div>
 
   </v-navigation-drawer>
 </template>

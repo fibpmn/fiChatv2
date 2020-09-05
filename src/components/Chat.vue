@@ -1,5 +1,5 @@
 <template>
-  <chat-window 
+  <chat-window
     height="calc(100vh - 90px)"
     :theme="theme"
     :currentUserId="currentUserId"
@@ -22,7 +22,7 @@ export default {
   components: {
     ChatWindow,
   },
-  props: ["theme", "auth"], 
+  props: ["theme", "auth"],
   data() {
     return {
       selectedRoom: null,
@@ -258,10 +258,29 @@ export default {
       let iterator = 0;
       let messages = await Messages.getRoomMessages(room.roomId);
       this.selectedRoom = room.roomId;
-      await Rooms.updateUserField(this.currentUserId, "selectedRoom", room.roomId);
+      await Rooms.updateUserField(
+        this.currentUserId,
+        "selectedRoom",
+        room.roomId
+      );
       messages.forEach((message) => {
         if (this.selectedRoom !== room.roomId) return;
         if (!messages) this.messagesLoaded = true;
+        messageList[iterator] = {
+          _id: message.id.$oid,
+          content: message.content,
+          sender_id: message.sender_id.$oid,
+        };
+        iterator++;
+      });
+      this.messages = messageList;
+    },
+
+    async refreshMessages(roomId) {
+      const messageList = [];
+      let iterator = 0;
+      let messages = await Messages.getRoomMessages(roomId);
+      messages.forEach((message) => {
         messageList[iterator] = {
           _id: message.id.$oid,
           content: message.content,
@@ -281,6 +300,7 @@ export default {
         seen: false,
       };
       Messages.addMessage(message);
+      this.refreshMessages(roomId);
     },
 
     formatLastMessage(message) {
@@ -312,19 +332,17 @@ export default {
       return { ...array[0], roomId: room };
     },
 
-    listenMessages(messages, room) {
-      messages.forEach((message) => {
-        const formattedMessage = this.formatMessage(room, message);
-        const messageIndex = this.messages.findIndex(
-          (m) => m._id === message.id
-        );
-        if (messageIndex === -1) {
-          this.messages = this.messages.concat([formattedMessage]);
-        } else {
-          this.$set(this.messages, messageIndex, formattedMessage);
-        }
-        this.markMessagesSeen(room, message);
-      });
+    markMessagesSeen(room, message) {
+      if (
+        message.sender_id !== this.currentUserId &&
+        (!message.seen || !message.seen[this.currentUserId])
+      ) {
+        this.messagesRef(room.roomId)
+          .doc(message.id)
+          .update({
+            [`seen.${this.currentUserId}`]: new Date(),
+          });
+      }
     },
   },
 };
