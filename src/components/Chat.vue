@@ -35,14 +35,10 @@ export default {
       dialog: false,
       theme: "light",
       selectedRoom: null,
-      loadingRooms: true,
+      loadingRooms: false,
       rooms: [],
       messages: [],
       messagesLoaded: false,
-      start: null,
-      end: null,
-      roomsListeners: [],
-      listeners: [],
       currentUserId: this.$store.state.id,
     };
   },
@@ -57,16 +53,11 @@ export default {
     resetRooms() {
       this.loadingRooms = true;
       this.rooms = [];
-      this.roomsListeners.forEach((listener) => listener());
       this.resetMessages();
     },
     resetMessages() {
       this.messages = [];
       this.messagesLoaded = false;
-      this.start = null;
-      this.end = null;
-      this.listeners.forEach((listener) => listener());
-      this.listeners = [];
     },
     async fetchRooms() {
       this.resetRooms();
@@ -90,7 +81,7 @@ export default {
               _id: user[0].id.$oid,
               username: user[0].firstName,
               roomId: room.roomId.$oid,
-              firstName: user[0].firstName
+              firstName: user[0].firstName,
             };
           });
 
@@ -158,8 +149,6 @@ export default {
         room.roomId
       );
       messages.forEach((message) => {
-        // if (iterator == 0) this.start = message;
-        // if (messages.length - 1 == iterator) this.end = message;
         if (this.selectedRoom !== room.roomId) return;
         if (!messages) this.messagesLoaded = true;
         messageList[iterator] = {
@@ -170,6 +159,8 @@ export default {
         iterator++;
       });
       this.messages = messageList;
+      this.messagesLoaded = true;
+      this.markMessagesSeen(room.roomId);
     },
 
     async refreshMessages(roomId) {
@@ -186,9 +177,11 @@ export default {
       });
       this.getLastRoomMessage(roomId);
       this.messages = messageList;
+      this.messagesLoaded = true;
     },
 
-    sendMessage({ content, roomId }) {
+    async sendMessage({ content, roomId }) {
+      debugger;
       const message = {
         room_id: roomId,
         sender_id: this.currentUserId,
@@ -196,7 +189,7 @@ export default {
         timestamp: new Date(),
         seen: false,
       };
-      Messages.addMessage(message);
+      await Messages.addMessage(message);
       this.refreshMessages(roomId);
     },
 
@@ -224,7 +217,7 @@ export default {
 
     async getLastRoomMessage(room) {
       const LastRoomMessage = await Messages.getLastRoomMessage(room);
-      return LastRoomMessage
+      return LastRoomMessage;
     },
 
     async getLastMessage(room) {
@@ -234,14 +227,9 @@ export default {
       return { ...array[0], roomId: room };
     },
 
-    // markMessagesSeen(room, message) {
-    //   if (
-    //     message.sender_id !== this.currentUserId &&
-    //     (!message.seen)
-    //   ) {
-    //     Messages.updateMessageField()
-    //   }
-    // },
+    markMessagesSeen(room) {
+      Messages.updateMessageField(room, "seen", true);
+    },
   },
 };
 </script>
@@ -249,11 +237,5 @@ export default {
 <style lang="scss">
 .line-new {
   display: none
-}
-.infinite-loading-container{
-  display: none
-}
-.messages-container {
-  padding: 10px 5px 5px !important
 }
 </style>

@@ -99,12 +99,12 @@ def addMessage():
 def updateMessageField():
     try:
         data = request.get_json()
-        message_id = ObjectId(data["message"])
+        room_id = ObjectId(data["room"])
         values = {'$set': {
             data["field"]: data["value"]
         }}
-        query = {"_id": message_id}
-        mongo.db.messages.update_one(query, values)
+        query = {"room_id": room_id}
+        mongo.db.messages.update_many(query, values)
         return "ok"
     except Exception as e:
         return json.dumps({'error': str(e)})

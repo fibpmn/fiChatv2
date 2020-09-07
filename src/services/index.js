@@ -149,9 +149,9 @@ let Messages = {
             );
 
     },
-    updateMessageField(message, field, value) {
+    updateMessageField(room, field, value) {
         Service.post('/api/updateMessageField', {
-            message: message,
+            room: room,
             field: field,
             value: value
         })
