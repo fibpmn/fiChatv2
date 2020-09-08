@@ -48,47 +48,40 @@
 
 <script>
 import { Camunda } from "@/services";
-import jwtDecode from "jwt-decode";
 
 export default {
-  components: {},
   data() {
-      const token = localStorage.usertoken;
-      const decoded = jwtDecode(token);
-      localStorage.getItem("username", decoded.identity.username)
     return {
+      username: this.$store.state.username,
+      model: [],
       start: "",
-      username: decoded.identity.username,
-      model: []
     };
   },
   mounted() {
     this.getProcesses();
   },
   methods: {
-    async StartProcessInstance() {
-      var key = ""
-      var name = ""
-      this.model.forEach(index => {
-        if(index.value == true) {
-          key = index.key
-          name = index.name
-          console.log("Front key", index.key)
-          console.log("Front name", index.name)
-        }
-      })
-      await Camunda.StartProcessInstance(key, name, this.username);
-    },
     async getProcesses() {
-      this.processes = await Camunda.getProcesses();
-      this.processes.map(process => {
+      var processes = await Camunda.getProcesses();
+      processes.map(process => {
         const element = {
-        name: process.name,
-        key: process.key,
-        value: false, 
-        }
-        this.model.push(element)
+          name: process.name,
+          key: process.key,
+          value: false
+        };
+        this.model.push(element);
       });
+    },
+    async StartProcessInstance() {
+      var key = "";
+      var name = "";
+      this.model.forEach(index => {
+        if (index.value == true) {
+          key = index.key;
+          name = index.name;
+        }
+      });
+      await Camunda.StartProcessInstance(key, name, this.username);
     }
   }
 };

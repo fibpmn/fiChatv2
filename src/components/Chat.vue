@@ -23,7 +23,7 @@
 <script>
 import ChatWindow from "vue-advanced-chat";
 import "vue-advanced-chat/dist/vue-advanced-chat.css";
-import { Rooms, Users, Messages } from "@/services";
+import { Rooms, Users, Messages, Camunda } from "@/services";
 import { parseTimestamp, isSameDay } from "@/utils/dates";
 
 export default {
@@ -50,6 +50,12 @@ export default {
     this.resetRooms();
   },
   methods: {
+    async tonijevafunkcija() {
+      var user = this.username;
+      console.log(user)
+      let response = await Camunda.tonijevafunkcija(user);
+      console.log(response)
+    },
     resetRooms() {
       this.loadingRooms = true;
       this.rooms = [];
