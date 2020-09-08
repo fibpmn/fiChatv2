@@ -24,6 +24,16 @@ def getRooms():
     except Exception as e:
         return json.dumps({'error': str(e)})
 
+# sobe usera
+@app.route('/api/getUserRooms/<user_id>', methods=['GET'])
+def getUserRooms(user_id):
+    try:
+        docs_list = list(mongo.db.chatRooms.find({
+            "users": ObjectId(user_id)
+        }))
+        return json.dumps(docs_list, default=json_util.default)
+    except Exception as e:
+        return json.dumps({'error': str(e)})
 
 # svi useri
 @app.route('/api/getUsers', methods=['GET'])
@@ -45,6 +55,22 @@ def getUserData(user_id):
     except Exception as e:
         return json.dumps({'error': str(e)})
 
+# updejtaj field korisnika
+@app.route('/api/updateUserField', methods=['POST'])
+@cross_origin()
+def updateUserField():
+    try:
+        data = request.get_json()
+        user_id = ObjectId(data["user"])
+        values = {'$set': {
+            data["field"]: data["value"]
+        }}
+        query = {"_id": user_id}
+        mongo.db.users.update_one(query, values)
+        return "ok"
+    except Exception as e:
+        return json.dumps({'error': str(e)})
+
 # sve poruke
 @app.route('/api/getMessages', methods=['GET'])
 def getMessages():
@@ -61,9 +87,36 @@ def addMessage():
     try:
         data = request.get_json()
         data["sender_id"] = ObjectId(data["sender_id"])
-        data["room_id"] = ObjectId(data["room_id"])     
+        data["room_id"] = ObjectId(data["room_id"])
         mongo.db.messages.insert_one(data)
         return "ok"
+    except Exception as e:
+        return json.dumps({'error': str(e)})
+
+# updejtaj field poruke
+@app.route('/api/updateMessageField', methods=['POST'])
+@cross_origin()
+def updateMessageField():
+    try:
+        data = request.get_json()
+        room_id = ObjectId(data["room"])
+        values = {'$set': {
+            data["field"]: data["value"]
+        }}
+        query = {"room_id": room_id}
+        mongo.db.messages.update_many(query, values)
+        return "ok"
+    except Exception as e:
+        return json.dumps({'error': str(e)})
+
+# sve poruke određenog usera
+@app.route('/api/getUserMessages/<user_id>', methods=['GET'])
+def getUserMessages(user_id):
+    try:
+        docs_list = list(mongo.db.messages.find({
+            "sender_id": ObjectId(user_id)
+        }))
+        return json.dumps(docs_list, default=json_util.default)
     except Exception as e:
         return json.dumps({'error': str(e)})
 
@@ -89,60 +142,7 @@ def getLastRoomMessage(room_id):
     except Exception as e:
         return json.dumps({'error': str(e)})
 
-
-# sve poruke određenog usera
-@app.route('/api/getUserMessages/<user_id>', methods=['GET'])
-def getUserMessages(user_id):
-    try:
-        docs_list = list(mongo.db.messages.find({
-            "sender_id": ObjectId(user_id)
-        }))
-        return json.dumps(docs_list, default=json_util.default)
-    except Exception as e:
-        return json.dumps({'error': str(e)})
-
-
-# sobe u kojima je user
-@app.route('/api/getUserRooms/<user_id>', methods=['GET'])
-def getUserRooms(user_id):
-    try:
-        docs_list = list(mongo.db.chatRooms.find({
-            "users": ObjectId(user_id)
-        }))
-        return json.dumps(docs_list, default=json_util.default)
-    except Exception as e:
-        return json.dumps({'error': str(e)})
-
-#updejtaj field korisnika
-@app.route('/api/updateUserField', methods=['POST'])
-@cross_origin()
-def updateUserField():
-    try:
-        data = request.get_json()
-        user_id = ObjectId(data["user"]) 
-        values = {'$set': {
-            data["field"]: data["value"]
-        }}
-        query = {"_id": user_id}
-        mongo.db.users.update_one(query, values)
-        return "ok"
-    except Exception as e:
-        return json.dumps({'error': str(e)})
-
-#PRIMJER
-# @app.route('/api/addMessage', methods=['POST'])
-# @cross_origin()
-# def addMessage():
-#     try:
-#         data = request.get_json()
-#         data["sender_id"] = ObjectId(data["sender_id"])
-#         data["room_id"] = ObjectId(data["room_id"])     
-#         mongo.db.messages.insert_one(data)
-#         return "ok"
-#     except Exception as e:
-#         return json.dumps({'error': str(e)})
-
-#### bpmn
+################### bpmn
 
 @app.route('/api/room', methods=['POST'])
 @cross_origin()
@@ -153,11 +153,11 @@ def create_room(room):
         return "ok"
     except Exception as e:
         return json.dumps({'Error': str(e)})
-    
+
+
 @app.route('/api/process-definitions', methods=["GET"])
 def get_processes():
     if request.method == "GET":
         docs_list = list(mongo.db.processes.find())
         print(docs_list)
         return json.dumps(docs_list, default=json_util.default)
-

@@ -76,6 +76,10 @@ let Rooms = {
                 roomId: doc._id,
                 roomName: doc.name,
                 users: doc.users,
+                businessKey: doc.businessKey,
+                processInstanceId: doc.processInstanceId,
+                definitionId: doc.definitionId,
+                variables: doc.variables,
             };
         });
     },
@@ -86,25 +90,13 @@ let Rooms = {
                 roomId: doc._id,
                 roomName: doc.name,
                 users: doc.users,
+                businessKey: doc.businessKey,
+                processInstanceId: doc.processInstanceId,
+                definitionId: doc.definitionId,
+                variables: doc.variables,
             };
         });
     },
-
-    updateUserField(user, field, value) {
-        Service.post('/api/updateUserField', {
-            user: user,
-            field: field,
-            value: value
-        })
-            .then(
-                response => {
-                    response;
-                },
-                error => {
-                    console.log(error);
-                }
-            );
-    }
 }
 
 let Messages = {
@@ -165,6 +157,21 @@ let Messages = {
                 }
             );
 
+    },
+    updateMessageField(room, field, value) {
+        Service.post('/api/updateMessageField', {
+            room: room,
+            field: field,
+            value: value
+        })
+            .then(
+                response => {
+                    response;
+                },
+                error => {
+                    console.log(error);
+                }
+            );
     }
 }
 
@@ -175,9 +182,10 @@ let Users = {
             return {
                 id: doc._id,
                 username: doc.username,
-                group: doc.group,
+                firstName: doc.firstName,
+                lastName: doc.lastName,
                 chatRooms: doc.chatRooms,
-                messages: doc.messages
+                selectedRoom: doc.selectedRoom
             };
         });
     },
@@ -187,18 +195,29 @@ let Users = {
             return {
                 id: doc._id,
                 username: doc.username,
-                group: doc.group,
+                firstName: doc.firstName,
+                lastName: doc.lastName,
                 chatRooms: doc.chatRooms,
-                messages: doc.messages
+                selectedRoom: doc.selectedRoom
             };
         });
+    },
+    
+    updateUserField(user, field, value) {
+        Service.post('/api/updateUserField', {
+            user: user,
+            field: field,
+            value: value
+        })
+            .then(
+                response => {
+                    response;
+                },
+                error => {
+                    console.log(error);
+                }
+            );
     }
 }
-
-// let Files = {
-//     getAll() {
-//         return Service.get('/api/getFiles')
-//     }
-// }
 
 export { Service, Rooms, Messages, Users, Camunda, Auth }
