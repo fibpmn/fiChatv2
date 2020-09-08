@@ -7,6 +7,44 @@ url = 'http://localhost:8080/engine-rest'
 
 #make handle_response_codes function
 
+def get_current_task(processDefinitionId, processInstanceId):
+    endpoint = url + '/task'
+    params = {
+        "processDefinitionId": processDefinitionId,
+        "processInstanceId": processInstanceId,
+    }
+    response = requests.request("GET", endpoint, params=params)
+    if(response.status_code == 200):
+        # temp = json.loads(response.text)
+        # task_id = temp[0]['id']
+        # task_assignee = temp[0]['assignee']
+        # task_name = temp[0]['name']
+        # task_process_instance_id = temp[0]['processInstanceId']
+        # task_process_definition_id = temp[0]['processDefinitionId']
+        # task_form_key = temp[0]['formKey']
+        # task = {
+        #     "task": {
+                
+        #     }
+        # }
+        return response.text
+    else: 
+        return response.text, response.status_code
+
+def get_user_task_formV1(processDefinitionId, user, form_key):
+    endpoint = url + '/task'
+    params = {
+        "processDefinitionId": processDefinitionId,
+        "assignee": user,
+        "assigned": "true",
+        "active": "true",
+        "formKey": form_key,
+    }
+    response = requests.request("GET", endpoint, params=params)
+    if(response.status_code == 200):
+        return response.text
+    else: 
+        return response.text, response.status_code
 
 def get_user_task_form(processDefinitionId, user):
     endpoint = url + '/task'
@@ -14,7 +52,7 @@ def get_user_task_form(processDefinitionId, user):
         "processDefinitionId": processDefinitionId,
         "assignee": user,
         "assigned": "true",
-        "active": "true"
+        "active": "true",
     }
     response = requests.request("GET", endpoint, params=params)
     if(response.status_code == 200):
@@ -48,7 +86,7 @@ def get_process_instance(id):
     endpoint = url + '/process-instance/' + id
     response = requests.request("GET", endpoint)
     if(response.status_code == 200):
-        return jsonify(response.text, response.status_code)
+        return response.text
     else:
         return jsonify(response.text, response.status_code)
 

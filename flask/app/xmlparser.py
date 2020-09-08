@@ -9,14 +9,6 @@ import codecs
 import json
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-global bpmn, camunda
-bpmn = 'http://www.omg.org/spec/BPMN/20100524/MODEL'
-camunda = 'http://camunda.org/schema/1.0/bpmn'
-
-ET.register_namespace(bpmn, 'http://www.omg.org/spec/BPMN/20100524/MODEL')
-
-#potrebno je rijesiti ove namespaceove
-
 def parse(process_definition_id, form_key):
     res = camundarest.get_process_xml(process_definition_id)  # res gets dictionary
     xml = res['bpmn20Xml']  # xml is stored in value of res
@@ -24,26 +16,34 @@ def parse(process_definition_id, form_key):
     root = tree.getroot()
     find_form = root.findtext(".//userTask", form_key)
     if(find_form != ""):
-        element = root.find('.//{http://camunda.org/schema/1.0/bpmn}formData')
-        model = {}
-        fields = []
-        temp = {}
-        for child in element.iter():
-            if(child.attrib != {}):
-                if(child.attrib['id']):
-                    temp['model'] = child.attrib['id']
-                    temp['label'] = child.attrib['label']
-                    if child.attrib['type'] == 'boolean':
-                        temp['type'] = 'checkbox'
-                        temp['default'] = 'false'
-                        model[child.attrib['id']] = 'false'
-                    else:
-                        temp['type'] = 'input'
-                        temp['inputType'] = 'text'
-                        model[child.attrib['id']] = ''
-                    fields.append(temp)
-                    temp = {}
-        schema1 = {'fields' : fields}
-        bigobj1 = {'model' : model, 'schema': schema1}
-        bigobj = json.dumps(bigobj1, ensure_ascii=False).encode('utf-8')
+        element = root.findall('.//{http://www.omg.org/spec/BPMN/20100524/MODEL}userTask')
+        for child in element:
+            if child.get('{http://camunda.org/schema/1.0/bpmn}formKey') == form_key:
+                grandchildren = child.getchildren()
+                for grandchild in grandchildren:
+                    if grandchild.getchildren() != []:
+                        greatgrandchildren = grandchild.getchildren()
+                        if greatgrandchildren != []:
+                            for greatgrandchild in greatgrandchildren:
+                                greatgreatgrandchildren = greatgrandchild.getchildren()
+                                model = {}
+                                fields = []
+                                temp = {}
+                                for lastoneipromise in greatgreatgrandchildren:
+                                    temp['model'] = lastoneipromise.attrib['id']
+                                    temp['label'] = lastoneipromise.attrib['label']
+                                    if lastoneipromise.attrib['type'] == 'boolean':
+                                        temp['type'] = 'checkbox'
+                                        temp['default'] = 'false'
+                                        model[lastoneipromise.attrib['id']] = 'false'
+                                    else:
+                                        temp['type'] = 'input'
+                                        temp['inputType'] = 'text'
+                                        model[lastoneipromise.attrib['id']] = ''
+                                    fields.append(temp)
+                                    temp = {}
+        schema = {'fields' : fields}
+        data = {'model' : model, 'schema': schema}
+        print("Data: ", data)
+        bigobj = json.dumps(data, ensure_ascii=False).encode('utf-8')
     return bigobj

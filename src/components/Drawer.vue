@@ -60,7 +60,7 @@
         </v-btn>
       </v-list-item-avatar>
       <v-list-item-content class="pt-0 pb-0">
-        <v-btn tile text color="white" class="pl-0" to="/home">IDI DOMA</v-btn>
+        <v-btn tile text color="white" class="pl-0" to="/">IDI DOMA</v-btn>
       </v-list-item-content>
     </v-list-item>
     <v-divider color="white"></v-divider>

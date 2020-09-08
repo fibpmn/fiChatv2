@@ -13,30 +13,58 @@
 
 <script>
 import { Camunda } from "@/services";
-import jwtDecode from "jwt-decode";
 
 export default {
   name: "UserTaskForm",
   data() {
-    const token = localStorage.usertoken;
-    const decoded = jwtDecode(token);
-    localStorage.getItem("username", decoded.identity.username);
     return {
+      username: this.$store.state.username,
       model: {},
       schema: {},
       formOptions: {
         validateAfterLoad: true,
         validateAfterChanged: true,
         validateAsync: true
-      },
-      username: decoded.identity.username
+      }
     };
   },
   mounted() {
-    this.getTaskFormVariables();
-    this.getMentors();
+    //this.getTaskFormVariables(); radi prvi task!!!!
+    this.tonijevafunkcija();
   },
   methods: {
+    async tonijevafunkcija() {
+      var username = this.username;
+      var data = await Camunda.tonijevafunkcija(username)
+      var mentori = await Camunda.getMentors();
+      if (data.model.Mentor != null) {
+        for (let i = 0; i < data.schema.fields.length; i++) {
+          if (data.schema.fields[i].model == "Mentor") {
+            delete data.schema.fields[i].inputType;
+            data.schema.fields[i].type = "select";
+            data.schema.fields[i].values = mentori[0]; //generator zahtijeva array, problem unutarnje pretvorbe?
+          }
+        }
+        this.model = data.model;
+        this.schema = data.schema;
+      }
+    },
+    async getTaskFormVariables() {
+      var username = this.username;
+      var data = await Camunda.getTaskFormVariables(username); 
+      var mentori = await Camunda.getMentors();
+      if (data.model.Mentor != null) {
+        for (let i = 0; i < data.schema.fields.length; i++) {
+          if (data.schema.fields[i].model == "Mentor") {
+            delete data.schema.fields[i].inputType;
+            data.schema.fields[i].type = "select";
+            data.schema.fields[i].values = mentori[0]; //generator zahtijeva array, problem unutarnje pretvorbe?
+          }
+        }
+        this.model = data.model;
+        this.schema = data.schema;
+      }
+    },
     async SendTaskVariables() {
       var temp = {};
       var variables = {};
@@ -53,29 +81,10 @@ export default {
         });
         Object.assign(variables, temp);
       });
-      variables.Mentor.value = variables.Mentor.value.replace(/ /g,"")
-      let user = this.username;
-      let id = await Camunda.getTaskIdForTaskCompletion(user);
-      await Camunda.completeTaskForm(id, variables, user);
-    },
-    async getMentors() {
-      await Camunda.getMentors();
-    },
-    async getTaskFormVariables() {
-      var username = this.username;
-      let data = await Camunda.getTaskFormVariables(username); //debugger;
-      var mentori = await Camunda.getMentors();
-      if (data.model.Mentor != null) {
-        for (let i = 0; i < data.schema.fields.length; i++) {
-          if (data.schema.fields[i].model == "Mentor") {
-            delete data.schema.fields[i].inputType;
-            data.schema.fields[i].type = "select";
-            data.schema.fields[i].values = mentori[0]; //generator zahtijeva array, problem unutarnje pretvorbe?
-          }
-        }
-        this.model = data.model;
-        this.schema = data.schema;
-      }
+      variables.Mentor.value = variables.Mentor.value.replace(/ /g, "");
+      let username = this.username;
+      let id = await Camunda.getTaskIdForTaskCompletion(username);
+      await Camunda.completeTaskForm(id, variables, username);
     }
   }
 };

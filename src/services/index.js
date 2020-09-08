@@ -19,12 +19,8 @@ let Auth = {
 }
 
 let Camunda = {
-    async getMentors() {
-        let response = await Service.get('/api/mentors')
-        let data = Object.values(response.data) 
-        return data;
-    },
 
+    //start process instance
     async getProcesses() {
         let response = await Service.get('/api/process-definitions')
         return response.data.map(doc => {
@@ -35,11 +31,11 @@ let Camunda = {
             }
         })
     },
-
     async StartProcessInstance(key, name, username) {
         await Service.post(`/api/process-instance/${key}`, { name, username })
     },
 
+    //get user task form
     async getTaskFormVariables(username) {
         let response = await Service.get(`/api/task/${username}`)
         let doc = response.data
@@ -48,16 +44,29 @@ let Camunda = {
             schema: doc.schema
         }
     },
-    async getTaskIdForTaskCompletion(assignee) {
-        let response = await Service.get(`/api/task/complete/${assignee}`) 
+    async getMentors() {
+        let response = await Service.get('/api/mentors')
+        let data = Object.values(response.data) 
+        return data;
+    },
+    async getTaskIdForTaskCompletion(username) {
+        let response = await Service.get(`/api/task/complete/${username}`) 
+        return response.data
+    },
+    async completeTaskForm(id, variables, username) {
+        let response = await Service.post(`/api/task/complete/${id}`, { variables, username })
         return response.data
     },
 
-    async completeTaskForm(id, variables, user) {
-        let response = await Service.post(`/api/task/complete/${id}`, { variables, user })
-        return response.data
+    //malo veca funkcija, ne znam kako bih ju nazvao
+    async tonijevafunkcija(user) {
+        let response = await Service.get(`/api/task/state/${user}`)
+        return response.data;
     },
+    
 }
+
+
 
 let Rooms = {
     async getAll() {
