@@ -24,6 +24,32 @@ def getRooms():
     except Exception as e:
         return json.dumps({'error': str(e)})
 
+#predsoblje
+@app.route('/api/fiRoom', methods=['POST'])
+@cross_origin()
+def create_fi_room():
+    try:
+        data = request.get_json()
+        user_email = data['email'] 
+        fi_email = data['fiemail']
+        room_name = data['name']
+        user = list(mongo.db.users.find({"email": user_email})) 
+        print(user)
+        fi = list(mongo.db.users.find({"email": fi_email})) 
+        print(fi)
+        room = {
+             "name": room_name,
+             "users": [user[0]['_id'], fi[0]['_id']],
+             "businessKey": "",
+             "processInstanceId": "",
+             "definitionId": "",
+             "variables": []
+        }
+        mongo.db.chatRooms.insert_one(room)
+        return "ok"
+    except Exception as e:
+        return json.dumps({'Error': str(e)})
+
 # sobe usera
 @app.route('/api/getUserRooms/<user_id>', methods=['GET'])
 def getUserRooms(user_id):

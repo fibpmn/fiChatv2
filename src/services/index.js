@@ -88,6 +88,9 @@ let Rooms = {
             };
         });
     },
+    async createRoom(email, fiemail, name){
+        await Service.post(`/api/fiRoom`, { email, fiemail, name })
+    }
 }
 
 let Messages = {

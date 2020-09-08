@@ -9,7 +9,7 @@
     :clipped="true"
     color="blue lighten-1"
   expand-on-hover
-    src="https://images.unsplash.com/photo-1567346953362-1bb30e3c10ed?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1491&q=80"
+    src="/drawer.png"
   >
     <div v-show="this.$store.state.auth">
     <v-list>
@@ -30,7 +30,7 @@
       <v-list-item-group two-line>
         <v-list-item class="pl-2">
           <v-avatar size="40">
-            <img src="/Fi.png" />
+            <img src="/Fi-mini.png" />
           </v-avatar>
           <v-list-item-content class="justify-center ml-3 white--text pt-2 pb-2">
             <v-list-item-title>{{"FI"}}</v-list-item-title>
@@ -60,7 +60,7 @@
         </v-btn>
       </v-list-item-avatar>
       <v-list-item-content class="pt-0 pb-0">
-        <v-btn tile text color="white" class="pl-0" to="/home">IDI DOMA</v-btn>
+        <v-btn tile text color="white" class="pl-0" to="/">IDI DOMA</v-btn>
       </v-list-item-content>
     </v-list-item>
     <v-divider color="white"></v-divider>
@@ -139,6 +139,7 @@ export default {
       this.$store.dispatch("setUsername", "Anonymous");
       this.$store.dispatch("setId", "");
       this.$store.dispatch("setInitials", "A");
+      location.reload();
     },
   }
 };

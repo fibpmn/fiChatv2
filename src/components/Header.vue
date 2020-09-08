@@ -1,6 +1,6 @@
 <template>
-  <v-app-bar app clipped-right dense flat color="#060606">
-    <img height="45px" width="auto" src="/Logo.png" />
+  <v-app-bar app clipped-right dense flat color="#00387a">
+    <a href="/"><img class="logo" height="45px" width="auto" src="/Logo.png"/></a>
   </v-app-bar>
 </template>
 
@@ -27,7 +27,7 @@ export default {
 </script>
 
 <style lang="scss">
-// .v-toolbar__content{
-//     box-shadow: 0px 2px #90CAF9 !important;
-// }
+.logo {
+  margin-top: 10px !important
+}
 </style>

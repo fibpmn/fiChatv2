@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <v-container fluid>
     <chat-window
       height="calc(100vh - 90px)"
       :theme="theme"
@@ -17,7 +17,7 @@
         <v-card-text>Kako bi koristio ovu aplikaciju, trebaš se registrirati ili prijaviti na već postojeći račun.</v-card-text>
       </v-card>
     </v-dialog>
-  </div>
+  </v-container>
 </template>
 
 <script>
