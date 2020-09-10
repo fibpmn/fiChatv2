@@ -67,10 +67,9 @@ let Camunda = {
 }
 
 
-
 let Rooms = {
     async getAll() {
-        let response = await Service.get('/api/getRooms')
+        let response = await Service.get('/api/rooms')
         return response.data.map(doc => {
             return {
                 roomId: doc._id,
@@ -80,11 +79,14 @@ let Rooms = {
                 processInstanceId: doc.processInstanceId,
                 definitionId: doc.definitionId,
                 variables: doc.variables,
+                flag: doc.flag,
+                initial: doc.initial,
+                active: doc.active
             };
         });
     },
     async getUserRooms(userid) {
-        let response = await Service.get(`/api/getUserRooms/${userid}`)
+        let response = await Service.get(`/api/rooms/${userid}`)
         return response.data.map(doc => {
             return {
                 roomId: doc._id,
@@ -94,6 +96,9 @@ let Rooms = {
                 processInstanceId: doc.processInstanceId,
                 definitionId: doc.definitionId,
                 variables: doc.variables,
+                flag: doc.flag,
+                initial: doc.initial,
+                active: doc.active
             };
         });
     },
@@ -104,7 +109,7 @@ let Rooms = {
 
 let Messages = {
     async getAll() {
-        let response = await Service.get('/api/getMessages')
+        let response = await Service.get('/api/messages')
         return response.data.map(doc => {
             return {
                 id: doc._id,
@@ -143,7 +148,7 @@ let Messages = {
         })
     },
     addMessage(message) {
-        Service.post('/api/addMessage',
+        Service.post('/api/messages',
             {
                 room_id: message.room_id,
                 content: message.content,
@@ -162,7 +167,7 @@ let Messages = {
 
     },
     updateMessageField(room, field, value) {
-        Service.post('/api/updateMessageField', {
+        Service.put('/api/messages', {
             room: room,
             field: field,
             value: value
@@ -180,20 +185,20 @@ let Messages = {
 
 let Users = {
     async getAll() {
-        let response = await Service.get('/api/getUsers')
+        let response = await Service.get('/api/users')
         return response.data.map(doc => {
             return {
-                id: doc._id,
-                username: doc.username,
+                id: doc._id,                
                 firstName: doc.firstName,
                 lastName: doc.lastName,
-                chatRooms: doc.chatRooms,
+                email: doc.email,
+                username: doc.username,
                 selectedRoom: doc.selectedRoom
             };
         });
     },
     async getOne(userid) {
-        let response = await Service.get(`/api/getUserData/${userid}`)
+        let response = await Service.get(`/api/users/${userid}`)
         return response.data.map(doc => {
             return {
                 id: doc._id,

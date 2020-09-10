@@ -4,10 +4,6 @@ from flask import Flask, jsonify, request
 from flask_pymongo import PyMongo
 from bson import BSON, json_util, ObjectId
 from flask_cors import cross_origin
-# from flask_bcrypt import Bcrypt
-# from flask_jwt_extended import JWTManager
-# from flask_jwt_extended import create_access_token
-
 mongo = PyMongo(app)
 
 
@@ -16,7 +12,7 @@ def index():
     return 'Not good for you.'
 
 # sve sobe
-@app.route('/api/getRooms', methods=['GET'])
+@app.route('/api/rooms', methods=['GET'])
 def getRooms():
     try:
         docs_list = list(mongo.db.chatRooms.find())
@@ -34,16 +30,17 @@ def create_fi_room():
         fi_email = data['fiemail']
         room_name = data['name']
         user = list(mongo.db.users.find({"email": user_email})) 
-        print(user)
         fi = list(mongo.db.users.find({"email": fi_email})) 
-        print(fi)
         room = {
              "name": room_name,
              "users": [user[0]['_id'], fi[0]['_id']],
              "businessKey": "",
              "processInstanceId": "",
              "definitionId": "",
-             "variables": []
+             "variables": [],
+             "flag": False,
+             "initial": True,
+             "active": True
         }
         mongo.db.chatRooms.insert_one(room)
         return "ok"
@@ -51,7 +48,7 @@ def create_fi_room():
         return json.dumps({'Error': str(e)})
 
 # sobe usera
-@app.route('/api/getUserRooms/<user_id>', methods=['GET'])
+@app.route('/api/rooms/<user_id>', methods=['GET'])
 def getUserRooms(user_id):
     try:
         docs_list = list(mongo.db.chatRooms.find({
@@ -62,8 +59,8 @@ def getUserRooms(user_id):
         return json.dumps({'error': str(e)})
 
 # svi useri
-@app.route('/api/getUsers', methods=['GET'])
-def getUsers():
+@app.route('/api/users', methods=['GET'])
+def getAllUsers():
     try:
         docs_list = list(mongo.db.users.find())
         return json.dumps(docs_list, default=json_util.default)
@@ -71,8 +68,8 @@ def getUsers():
         return json.dumps({'error': str(e)})
 
 # uzmi za jednog usera
-@app.route('/api/getUserData/<user_id>', methods=['GET'])
-def getUserData(user_id):
+@app.route('/api/users/<user_id>', methods=['GET'])
+def getUser(user_id):
     try:
         docs_list = list(mongo.db.users.find({
             "_id": ObjectId(user_id)
@@ -98,7 +95,7 @@ def updateUserField():
         return json.dumps({'error': str(e)})
 
 # sve poruke
-@app.route('/api/getMessages', methods=['GET'])
+@app.route('/api/messages', methods=['GET'])
 def getMessages():
     try:
         docs_list = list(mongo.db.messages.find())
@@ -107,7 +104,7 @@ def getMessages():
         return json.dumps({'error': str(e)})
 
 # dodaj poruku
-@app.route('/api/addMessage', methods=['POST'])
+@app.route('/api/messages', methods=['POST'])
 @cross_origin()
 def addMessage():
     try:
@@ -120,7 +117,7 @@ def addMessage():
         return json.dumps({'error': str(e)})
 
 # updejtaj field poruke
-@app.route('/api/updateMessageField', methods=['POST'])
+@app.route('/api/messages', methods=['PUT'])
 @cross_origin()
 def updateMessageField():
     try:
