@@ -28,6 +28,6 @@ export default {
 
 <style lang="scss">
 .logo {
-  margin-top: 10px !important
+  margin-top: 4px !important;
 }
 </style>

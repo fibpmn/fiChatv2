@@ -5,6 +5,7 @@ from flask_pymongo import PyMongo
 from app import camundarest
 from app import xmlparser
 from app import dbroutes
+from app import externals
 from bson import BSON, json_util, ObjectId
 from flask_cors import cross_origin
 import requests, json, time, re
@@ -30,6 +31,8 @@ def start_instance(key):
              "definitionId": data["definitionId"],
              "variables": [],
              "flag": False,
+             "initial": False,
+             "active": True,
             }
             dbroutes.create_room(room)
         except Exception as e:
@@ -84,12 +87,13 @@ def get_task_id_for_task_completion(username):
 @cross_origin()
 def complete_user_task(id):
     data = request.get_json()
-    print(data)
     user = data['username']
-    user_oid = mongo.db.users.find_one({"username": user})['_id']
+    selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
+    #print("Selected Room: ", selected_room)
     mentor_username = data['variables']['Mentor']['value']
     mentor_oid = ObjectId(mongo.db.users.find_one({"username": mentor_username})['_id'])
-    query = ObjectId(mongo.db.chatRooms.find_one({"users": user_oid})['_id'])
+    query = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room), "initial": False})['_id']
+    #print("Query: ", query)
     values = {'$addToSet': {
         "users": mentor_oid
     }}
@@ -103,75 +107,141 @@ def complete_user_task(id):
     mongo.db.chatRooms.update_one({"_id": query}, var_values)
     return camundarest.complete_task(id, instance_variables)
 
-
-
 @app.route('/api/task/state/<user>', methods=["GET"])
 @cross_origin()
 def check_state(user):
-    user_oid = mongo.db.users.find_one({"username": user})['_id']
-    user_in_rooms = list(mongo.db.chatRooms.find({'users': user_oid}))
-    if user_in_rooms != '[]':
-        print(user_in_rooms)
-        iterator = 0
-        for room_id in user_in_rooms:
-            current_tasks = json.loads(camundarest.get_current_task(room_id['definitionId'], room_id['processInstanceId']))
-            print("Current tasks: ", current_tasks)
-            if current_tasks[iterator]['assignee'] == user: #"Je li user assignee u nekom od chatrooma?"
-                task_id = current_tasks[iterator]['id']
-                print("\n")
-                print("TaskID: ", task_id)
-                definition_id = current_tasks[iterator]['processDefinitionId']
-                print("DefinitionID: ", definition_id)
-                form_key = current_tasks[iterator]['formKey']
-                print("FormKey: ", form_key)
-                if form_key != "": #
-                    camunda_variables = current_tasks
-                    mongo_variables = user_in_rooms[iterator]['variables']
-                    print(mongo_variables)
-                    if mongo_variables == '[]':
-                        print("1. Incomplete task")
-                        return xmlparser.parse(camunda_variables[iterator]['processDefinitionId'], camunda_variables[iterator]['formKey'])
-                    else: 
-                        mongo_flag = user_in_rooms[iterator]['flag']
-                        if mongo_flag == False:
-                            flag_value = {'$set': {
-                                'flag': True
-                            }}
-                            mongo.db.chatRooms.update_one({"_id": user_in_rooms[iterator]['_id']}, flag_value)
-                            camunda_variables = xmlparser.parse(camunda_variables[iterator]['processDefinitionId'], camunda_variables[iterator]['formKey'])
-                            print("Mongo:", mongo_variables)
-                            print("Camunda:", camunda_variables)
-                            data = {
-                                "databaseVariables": mongo_variables,
-                                "camundaVariables": camunda_variables
-                            }
-                            print("2. Incomplete task")
-                            return data
-                        else:
-                            print("3. Incomplete task")
-                            return xmlparser.parse(camunda_variables[iterator]['processDefinitionId'], camunda_variables[iterator]['formKey'])
+    selected_room = json.loads(dbroutes.get_selected_room(user))[0]
+    instance_id = selected_room['processInstanceId']
+    definition_id = selected_room['definitionId']
+    variables = selected_room['variables']
+    flag = selected_room['flag']
+    room_id = selected_room['_id']
+    print("Selected room: ", selected_room)
+    
+    #current_task = json.loads(camundarest.get_current_task(definition_id, instance_id))[0]
+    if camundarest.get_current_task(definition_id, instance_id) != '[]':
+        current_task = json.loads(camundarest.get_current_task(definition_id, instance_id))[0]
+        task_id = current_task['id']
+        task_form_key = current_task['formKey']
+        task_assignee = current_task['assignee']
+    else: 
+        current_task = json.loads(camundarest.get_current_external_task(definition_id, instance_id))[0]
+        task_id = current_task['id']
+        task_assignee = None
+        task_form_key = None
+    print(current_task)
+
+    if task_assignee != None:
+        if task_form_key != None:
+            task_variables = xmlparser.parse(definition_id, task_form_key)
+            if variables != []:
+                if flag == False:
+                    dbroutes.set_flag(room_id)
+                    data = { 
+                        "databaseVariables": variables,
+                        "serviceVariables": task_variables,
+                    }
+                    return task_variables
                 else:
-                    mongo_flag = user_in_rooms[iterator]['flag']
-                    if mongo_flag == False:
-                        flag_value = {'$set': {
-                                'flag': True
-                        }}
-                        mongo.db.chatRooms.update_one({"_id": user_in_rooms[iterator]['_id']}, flag_value)
-                        mongo_variables = user_in_rooms[iterator]['variables']
-                        print("4. Incomplete task")
-                        return mongo_variables
-                    else:
-                        print("5. Chat logika, vidjet cemo jos sto je to")
-                        return "Chat/Chatbot logika"
+                    return task_variables                
             else:
-                if current_tasks[iterator]['assignee'] != "null":
-                    print("6. Incomplete task")
-                    return "Task has to be done by someone else"
-                else:
-                    #GetExternalTask -> name
-                    #IzvršiExternalTask
-                    #MozdaICompleteTask
-                    print("pepe")
-                    return "pepe"
-        iterator += 1
-    return "Korisnik se ne nalazi u nijednoj chat sobi"
+                return task_variables
+        else:
+            if flag == False:
+                    dbroutes.set_flag(room_id)
+                    data = {
+                        "databaseVariables": variables,
+                        "serviceVariables": task_variables,
+                    }
+                    return data
+            else: 
+                return "Chat logika"
+    else:
+        if task_form_key != None:
+            return "Task mora odraditi druga osoba"
+        else:
+            external_task_id = task_id
+            external_topic_name = current_task['topicName']
+            external_worker_id = 'worker' + user
+            if external_topic_name == 'test':
+                response = externals.test(external_task_id, external_topic_name, external_worker_id)
+            elif external_topic_name == 'izracunaj_skolarinu':
+                #tu ce biti i varijable iz camunde, tip studenta
+                response = externals.izracunaj_skolarinu()
+            elif external_topic_name == 'upisi_studenta':
+                #takoder ce se slati varijable
+                response = externals.upisi_studenta()
+            elif external_topic_name == 'unos_prijave':
+                #ista stvar
+                response = externals.unos_prijave()
+            return "pepe"
+
+    # if user_in_rooms != '[]':
+    #     print("MONGO: ", user_in_rooms)
+    #     print("\n")
+    #     iterator = 0
+    #     for room_id in user_in_rooms:
+    #         print(user_in_rooms[iterator]['initial'])
+    #         if user_in_rooms[iterator]['initial'] == False:
+    #             current_tasks = json.loads(camundarest.get_current_task(room_id['definitionId'], room_id['processInstanceId']))
+    #             print("CURRENT TASKS: ", current_tasks)
+    #             if current_tasks[iterator]['assignee'] == user:
+    #                 task_id = current_tasks[iterator]['id']
+    #                 definition_id = current_tasks[iterator]['processDefinitionId']
+    #                 form_key = current_tasks[iterator]['formKey']
+    #                 if form_key != "": 
+    #                     camunda_variables = current_tasks
+    #                     mongo_variables = user_in_rooms[iterator]['variables']
+    #                     print(mongo_variables)
+    #                     if mongo_variables == '[]':
+    #                         print("1. Incomplete task")
+    #                         return xmlparser.parse(camunda_variables[iterator]['processDefinitionId'], camunda_variables[iterator]['formKey'])
+    #                     else: 
+    #                         mongo_flag = user_in_rooms[iterator]['flag']
+    #                         if mongo_flag == False:
+    #                             flag_value = {'$set': {
+    #                                 'flag': True
+    #                             }}
+    #                             mongo.db.chatRooms.update_one({"_id": user_in_rooms[iterator]['_id']}, flag_value)
+    #                             camunda_variables = xmlparser.parse(camunda_variables[iterator]['processDefinitionId'], camunda_variables[iterator]['formKey'])
+    #                             print("Mongo:", mongo_variables)
+    #                             print("Camunda:", camunda_variables)
+    #                             data = {
+    #                                 "databaseVariables": mongo_variables,
+    #                                 "camundaVariables": camunda_variables
+    #                             }
+    #                             print("2. Incomplete task")
+    #                             return data
+    #                         else:
+    #                             print("3. Incomplete task")
+    #                             return xmlparser.parse(camunda_variables[iterator]['processDefinitionId'], camunda_variables[iterator]['formKey'])
+    #                 else:
+    #                     mongo_flag = user_in_rooms[iterator]['flag']
+    #                     if mongo_flag == False:
+    #                         flag_value = {'$set': {
+    #                                 'flag': True
+    #                         }}
+    #                         mongo.db.chatRooms.update_one({"_id": user_in_rooms[iterator]['_id']}, flag_value)
+    #                         mongo_variables = user_in_rooms[iterator]['variables']
+    #                         print("4. Incomplete task")
+    #                         return mongo_variables
+    #                     else:
+    #                         print("5. Chat logika, vidjet cemo jos sto je to")
+    #                         return "Chat/Chatbot logika"
+    #             else:
+    #                 if current_tasks[iterator]['assignee'] != "null":
+    #                     print("6. Incomplete task")
+    #                     return "Task has to be done by someone else"
+    #                 else:
+    #                     #GetExternalTask -> name
+    #                     #IzvršiExternalTask
+    #                     #MozdaICompleteTask
+    #                     print("pepe")
+    #                     return "pepe"
+    #         else:
+    #             print("Else")
+    #             print(iterator)
+    #             iterator += 1
+    #             continue
+
+    #return "Korisnik se ne nalazi u nijednoj chat sobi"

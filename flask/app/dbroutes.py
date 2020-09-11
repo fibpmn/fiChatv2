@@ -187,3 +187,23 @@ def get_processes():
         docs_list = list(mongo.db.processes.find())
         print(docs_list)
         return json.dumps(docs_list, default=json_util.default)
+
+@app.route('/api/userinrooms', methods=["GET"])
+def get_selected_room(user):
+    try:
+        selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
+        room = list(mongo.db.chatRooms.find({"_id": ObjectId(selected_room)}))
+        return json.dumps(room, default=json_util.default)
+    except Exception as e:
+        return json.dumps({'Error': str(e)})
+
+@app.route('/api/task/variables', methods=["GET"])
+def set_flag(id):
+    try:
+        flag_value = {'$set': {
+                        'flag': True
+        }}
+        mongo.db.chatRooms.update_one({"_id": id}, flag_value)
+        return "Flag set to true"
+    except Exception as e:
+        return json.dumps({'Error': str(e)})

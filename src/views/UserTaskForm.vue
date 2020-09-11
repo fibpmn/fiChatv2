@@ -1,14 +1,18 @@
 <template>
-  <v-row>
+  <v-container class="bg" fill-height fluid>
+  <v-row align="center" justify="center">
     <v-col class="col-3"></v-col>
     <v-col class="col-6">
+      <div v-if="show">
       <v-sheet elevation="1" tile color="white" class="mt-16 pa-5">
         <vue-form-generator :schema="schema" :model="model" :options="formOptions"></vue-form-generator>
         <v-btn class="ml-2 mt-1" tile depressed @click="SendTaskVariables">Pošalji</v-btn>
       </v-sheet>
+      </div>
     </v-col>
     <v-col div="col-3"></v-col>
   </v-row>
+  </v-container>
 </template>
 
 <script>
@@ -21,6 +25,7 @@ export default {
       username: this.$store.state.username,
       model: {},
       schema: {},
+      show: false,
       formOptions: {
         validateAfterLoad: true,
         validateAfterChanged: true,
@@ -36,6 +41,10 @@ export default {
     async tonijevafunkcija() {
       var username = this.username;
       var data = await Camunda.tonijevafunkcija(username)
+      console.log(data)
+      console.log(typeof data)
+      if (typeof data != 'string') {
+        this.show = true
       var mentori = await Camunda.getMentors();
       if (data.model.Mentor != null) {
         for (let i = 0; i < data.schema.fields.length; i++) {
@@ -47,11 +56,12 @@ export default {
         }
         this.model = data.model;
         this.schema = data.schema;
+        }
       }
     },
     async getTaskFormVariables() {
       var username = this.username;
-      var data = await Camunda.getTaskFormVariables(username); 
+      var data = await Camunda.getTaskFormVariables(username);
       var mentori = await Camunda.getMentors();
       if (data.model.Mentor != null) {
         for (let i = 0; i < data.schema.fields.length; i++) {
@@ -106,5 +116,8 @@ fieldset {
   border-right-style: solid;
   border-bottom-width: 0px;
   border-bottom-style: solid;
+}
+.bg {
+  background-image: url("/bg.png");
 }
 </style>

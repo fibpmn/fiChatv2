@@ -6,6 +6,17 @@ global url
 url = 'http://localhost:8080/engine-rest' 
 
 #make handle_response_codes function
+def get_current_external_task(processDefinitionId, processInstanceId):
+    endpoint = url + '/external-task'
+    params = {
+        "processDefinitionId": processDefinitionId,
+        "processInstanceId": processInstanceId,
+    }
+    response = requests.request("GET", endpoint, params=params)
+    if(response.status_code == 200):
+        return response.text
+    else: 
+        return response.text, response.status_code   
 
 def get_current_task(processDefinitionId, processInstanceId):
     endpoint = url + '/task'
@@ -105,26 +116,6 @@ def get_process_instances_list(businessKey):
     }
     response = requests.request("GET", endpoint, params=params)
     if(response.status_code == 200):
-        return jsonify(response.text, response.status_code)
-    else:
-        return jsonify(response.text, response.status_code)
-
-def start_process_instance_id(id, businessKey, withVariablesInReturn):
-    endpoint = url + "/process-definition/" + id + "/start"
-    body = {
-        # "variables": {
-        #     "value": value
-        #     "type": type #bool, int,...
-        # }
-        "businessKey": businessKey,
-        "withVariablesInReturn": withVariablesInReturn #true
-    }
-    response = requests.request("POST", endpoint, json=body)
-    if(response.status_code == 200):
-        return jsonify(response.text, response.status_code)
-    elif(response.status_code == 400):
-        return jsonify(response.text, response.status_code)
-    elif(response.status_code == 404):
         return jsonify(response.text, response.status_code)
     else:
         return jsonify(response.text, response.status_code)
@@ -303,46 +294,52 @@ def get_external_tasks(topicName):
     else:
         return jsonify(response.text, response.status_code)
 
-def fetch_and_lock(workerId, maxTasks, topicName):
+def fetch_and_lock(workerId, topicName):
     endpoint = url + "/external-task/fetchAndLock"
     body = {
         "workerId": workerId,
-        "maxTasks": maxTasks,
+        "maxTasks": 1,
+        "asyncResponseTimeout": 5000,
         "topics": [{
             "topicName": topicName,
             "lockDuration": 10000,
-            # "variables:" [{
-            #     "value": Value,
-            #     "type": Type
-            # }]
         }]
     }
     response = requests.request("POST", endpoint, json=body)
-    print(response.text)
     if(response.status_code == 200):
         return response.text
     else:
         return jsonify(response.text, response.status_code)
 
-def complete_external_task(id, workerId, mentori):
+def complete_external_task(id, workerId, variables):
     endpoint = url + "/external-task/" + id + "/complete"
     body = {
         "workerId": workerId,
-        "variables": {
-            "Mentori": { 
-                "value": mentori     
-            }
-        }
+        "variables": variables
     }
     response = requests.request("POST", endpoint, json=body)
+    print(response.text, response.status_code)
     if(response.status_code == 204):
-        return jsonify(response.text, response.status_code)
+        return response.text
     elif(response.status_code == 400):
         return jsonify(response.text, response.status_code)    
     elif(response.status_code == 404):
         return jsonify(response.text, response.status_code)
     else:
         return jsonify(response.text, response.status_code)
+
+def complete_task(id, vars):
+    endpoint = url + "/task/" + id + "/complete"
+    body = {
+        "variables": vars,
+        "withVariablesInReturn": True
+    }
+    response = requests.request("POST", endpoint, json=body)
+    if(response.status_code == 200):
+        return response.text
+    else:
+        error = jsonify(response.text, response.status_code)
+        return error
 
 def get_process_xml(id):
     endpoint = url + "/process-definition/" + id + "/xml"
@@ -355,36 +352,21 @@ def get_process_xml(id):
     else:
         return response.text, response.status_code
 
-def complete_task(id, vars):
-    endpoint = url + "/task/" + id + "/complete"
-    #print("PRIJE camundarest: ", vars)
-    body = {
-        "variables": vars,
-        "withVariablesInReturn": True
-    }
-    #print("POSLIJE camundarest: ", vars)
-    response = requests.request("POST", endpoint, json=body)
-    if(response.status_code == 200):
-        return response.text
-    else:
-        error = jsonify(response.text, response.status_code)
-        return error
-
-def submit_task_form(id, vars):
-    endpoint = url + "/task/" + id + "/submit-form"
-    body = {
-        "variables": vars,
-        "withVariablesInReturn": True
-    }
-    print("camundarest: ", vars)
-    response = requests.request("POST", endpoint, json=body)
-    if(response.status_code == 200):
-        return response.text
-    else:
-        error = jsonify(response.text, response.status_code)
-        return error
-
-
+# def start_process_instance_id(id, businessKey, withVariablesInReturn):
+#     endpoint = url + "/process-definition/" + id + "/start"
+#     body = {
+#         "businessKey": businessKey,
+#         "withVariablesInReturn": withVariablesInReturn #true
+#     }
+#     response = requests.request("POST", endpoint, json=body)
+#     if(response.status_code == 200):
+#         return jsonify(response.text, response.status_code)
+#     elif(response.status_code == 400):
+#         return jsonify(response.text, response.status_code)
+#     elif(response.status_code == 404):
+#         return jsonify(response.text, response.status_code)
+#     else:
+#         return jsonify(response.text, response.status_code)
 
 # def delete_process_definition_id(id):
 #     endpoint = url + "/process-definition/" + id
