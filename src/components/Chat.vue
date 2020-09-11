@@ -40,10 +40,13 @@ export default {
       messages: [],
       messagesLoaded: false,
       currentUserId: this.$store.state.id,
+      fiId: null,
+      receptionRoom: null,
+      messagesByBot: null
     };
   },
   mounted() {
-    if (this.$store.state.auth) this.fetchRooms();
+    if (this.$store.state.auth) this.fetchRooms(), this.setFi()
     else this.dialog = true;
   },
   destroyed() {
@@ -52,9 +55,9 @@ export default {
   methods: {
     async tonijevafunkcija() {
       var user = this.username;
-      console.log(user)
+      console.log(user);
       let response = await Camunda.tonijevafunkcija(user);
-      console.log(response)
+      console.log(response);
     },
     resetRooms() {
       this.loadingRooms = true;
@@ -142,6 +145,21 @@ export default {
       this.loadingRooms = false;
     },
 
+    async introMessage() {
+      if(this.selectedRoom == this.receptionRoom && this.messagesByBot == false){
+      let content = "Hej! Dobrodošao. Izaberi proces:"
+      const message = {
+        room_id: this.receptionRoom,
+        sender_id: this.fiId,
+        content,
+        timestamp: new Date(),
+        seen: false,
+      };
+      await Messages.addMessage(message);
+      this.refreshMessages(this.receptionRoom)
+      }
+    },
+
     async fetchMessages({ room, options = {} }) {
       if (options.reset) this.resetMessages();
 
@@ -149,11 +167,14 @@ export default {
       let iterator = 0;
       let messages = await Messages.getRoomMessages(room.roomId);
       this.selectedRoom = room.roomId;
+
       await Users.updateUserField(
         this.currentUserId,
         "selectedRoom",
         room.roomId
-      );
+      ); 
+      this.setReception();     
+      this.introMessage()
       messages.forEach((message) => {
         if (this.selectedRoom !== room.roomId) return;
         if (!messages) this.messagesLoaded = true;
@@ -187,7 +208,6 @@ export default {
     },
 
     async sendMessage({ content, roomId }) {
-      debugger;
       const message = {
         room_id: roomId,
         sender_id: this.currentUserId,
@@ -236,12 +256,31 @@ export default {
     markMessagesSeen(room) {
       Messages.updateMessageField(room, "seen", true);
     },
+
+    async setFi() {
+      let users = await Users.getAll();
+      let obj = users.find(o => o.email === 'fibot@unipu.hr');
+      this.fiId = obj.id.$oid
+    },
+
+    async setReception(){
+      let userId = this.currentUserId;
+      let rooms = await Rooms.getUserRooms(userId);
+      let obj = rooms.filter(o => o.initial === true);
+      this.receptionRoom = obj[0].roomId.$oid
+      console.log(obj[0].roomId.$oid)
+      let messages = await Messages.getAll();
+      let fiId = this.fiId
+      let msgobj = messages.filter(o => o.room_id.$oid === obj[0].roomId.$oid && o.sender_id.$oid === fiId);
+      if(msgobj === undefined || msgobj.length == 0) this.messagesByBot = false;
+      else this.messagesByBot = true;
+    }
   },
 };
 </script>
 
 <style lang="scss">
 .line-new {
-  display: none
+  display: none;
 }
 </style>
