@@ -19,7 +19,6 @@ let Auth = {
 }
 
 let Camunda = {
-
     //start process instance
     async getProcesses() {
         let response = await Service.get('/api/process-definitions')
@@ -37,13 +36,19 @@ let Camunda = {
 
     //get user task form
     async getTaskFormVariables(username) {
-        let response = await Service.get(`/api/task/${username}`)
+        let response = await Service.get(`/api/task/state/${username}`)
         let doc = response.data
         return {
             model: doc.model,
             schema: doc.schema
         }
     },
+    //malo veca funkcija, ne znam kako bih ju nazvao
+    async tonijevafunkcija(user) {
+        let response = await Service.get(`/api/task/state/${user}`)
+        return response.data;
+    },
+    //VUE GENERATOR FORM SPECIFIC
     async getMentors() {
         let response = await Service.get('/api/mentors')
         let data = Object.values(response.data) 
@@ -56,17 +61,8 @@ let Camunda = {
     async completeTaskForm(id, variables, username) {
         let response = await Service.post(`/api/task/complete/${id}`, { variables, username })
         return response.data
-    },
-
-    //malo veca funkcija, ne znam kako bih ju nazvao
-    async tonijevafunkcija(user) {
-        let response = await Service.get(`/api/task/state/${user}`)
-        return response.data;
-    },
-    
+    },    
 }
-
-
 let Rooms = {
     async getAll() {
         let response = await Service.get('/api/rooms')

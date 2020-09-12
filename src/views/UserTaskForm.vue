@@ -34,15 +34,12 @@ export default {
     };
   },
   mounted() {
-    //this.getTaskFormVariables(); radi prvi task!!!!
     this.tonijevafunkcija();
   },
   methods: {
     async tonijevafunkcija() {
       var username = this.username;
       var data = await Camunda.tonijevafunkcija(username)
-      console.log(data)
-      console.log(typeof data)
       if (typeof data != 'string') {
         this.show = true
       var mentori = await Camunda.getMentors();
@@ -57,22 +54,6 @@ export default {
         this.model = data.model;
         this.schema = data.schema;
         }
-      }
-    },
-    async getTaskFormVariables() {
-      var username = this.username;
-      var data = await Camunda.getTaskFormVariables(username);
-      var mentori = await Camunda.getMentors();
-      if (data.model.Mentor != null) {
-        for (let i = 0; i < data.schema.fields.length; i++) {
-          if (data.schema.fields[i].model == "Mentor") {
-            delete data.schema.fields[i].inputType;
-            data.schema.fields[i].type = "select";
-            data.schema.fields[i].values = mentori[0]; //generator zahtijeva array, problem unutarnje pretvorbe?
-          }
-        }
-        this.model = data.model;
-        this.schema = data.schema;
       }
     },
     async SendTaskVariables() {

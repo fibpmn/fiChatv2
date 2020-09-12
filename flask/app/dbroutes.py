@@ -172,18 +172,17 @@ def getLastRoomMessage(room_id):
 def create_room(room):
     try:
         mongo.db.chatRooms.insert_one(room)
-        print("Soba je kreirana")
-        return "ok"
+        return "Room is created"
     except Exception as e:
         return json.dumps({'Error': str(e)})
 
-
 @app.route('/api/process-definitions', methods=["GET"])
 def get_processes():
-    if request.method == "GET":
+    try:
         docs_list = list(mongo.db.processes.find())
-        print(docs_list)
         return json.dumps(docs_list, default=json_util.default)
+    except Exception as error:
+        return json.dumps({'Error': str(error)}) 
 
 @app.route('/api/userinrooms', methods=["GET"])
 def get_selected_room(user):
@@ -191,16 +190,16 @@ def get_selected_room(user):
         selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
         room = list(mongo.db.chatRooms.find({"_id": ObjectId(selected_room)}))
         return json.dumps(room, default=json_util.default)
-    except Exception as e:
-        return json.dumps({'Error': str(e)})
+    except Exception as error:
+        return json.dumps({'Error': str(error)})
 
-@app.route('/api/task/variables', methods=["GET"])
+@app.route('/api/task/variables', methods=["POST"])
 def set_flag(id):
     try:
         flag_value = {'$set': {
                         'flag': True
         }}
         mongo.db.chatRooms.update_one({"_id": id}, flag_value)
-        return "Flag set to true"
+        return "Flag is set to True"
     except Exception as e:
         return json.dumps({'Error': str(e)})
