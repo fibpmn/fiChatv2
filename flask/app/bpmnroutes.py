@@ -107,6 +107,7 @@ def check_state(user):
             return "pepe"
 
 
+
 @app.route('/api/task/complete', methods=['POST'])
 @cross_origin()
 def general_complete(user):
@@ -119,6 +120,60 @@ def general_complete(user):
     current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
     task_id = current_task['id']
     return camundarest.complete_user_task(task_id, instance_variables)
+
+#DATABASE VARS INTO MESSAGES FORMATTER
+@app.route('/api/variables/<user>', methods=['GET'])
+@cross_origin()
+def make_messages_out_of_database_variables(user):
+    selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
+    room = list(mongo.db.chatRooms.find({"_id": ObjectId(selected_room)}))[0]
+    print("Room: ", room)
+    flag = room['flag']
+    if flag != True:
+        variable_names = []
+        props_list = []
+        for i in room['variables']: #prodi kroz varijable
+            variable_name = i.keys()       #uzmi nazive varijabli, pr. "NaslovRada"
+            variable_props = i.values()       #uzmi svojstva varijable, pr. {"value": "blabla", "type": "String"}
+            for index in variable_name:    
+                element = ''
+                for k, l in enumerate(index):           #ovo sluzi za stavljanje razmaka u usernameu, k je proslo slovo, l je trenutno slovo
+                    if k and l.isupper():
+                        element += ' '
+                    element += l
+                variable_names.append(element)              #dodaj element u polje varijabli imena 
+            for index in variable_props:                        
+                properties = (list(index.values())[0])             
+                props_list.append(properties)               #dodaj element u polje varijabli svojstava
+
+        #ovdje se konkateniraju imena i svojstva u jedan objekt koji se kasnije appenda u listu, 1 element liste = 1 message content
+        object_concat = {}                                  
+        list_of_content = []
+        for index in range(len(variable_names)):
+            object_concat = str(variable_names[index]) + ": " + str(props_list[index]) #ovo je content
+            list_of_content.append(object_concat)
+
+        messages = []
+        temporary = {}
+        sender_id = ObjectId(mongo.db.users.find_one({"username": "Fi"})["_id"])
+        room_id = ObjectId(selected_room)
+        timestamp = datetime.datetime.now().isoformat() + "Z"
+
+        for key in range(len(list_of_content)):
+            temporary = {
+                "room_id": room_id,
+                "sender_id": sender_id,
+                "content": list_of_content[key],
+                "timestamp": timestamp,
+                "seen": False
+            }
+            messages.append(temporary)
+        return json.dumps(messages, default=json_util.default, sort_keys=False)
+    else:
+        return "Varijable su iz baze vec povucene"
+
+
+
 
 #FUNCTION USED IN VUE GENERATOR FOMR, NOT TO BE USED IN CHAT
 #GET MENTORS 
@@ -174,55 +229,3 @@ def complete_user_task(id):
     mongo.db.chatRooms.update_one({"_id": query}, var_values)
     return camundarest.complete_user_task(id, instance_variables)
 
-@app.route('/api/variables/<user>', methods=['GET'])
-@cross_origin()
-def make_messages_out_of_database_variables(user):
-    selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
-    print("Selected Room: ", selected_room)
-    print(repr(selected_room))
-    room = list(mongo.db.chatRooms.find({"_id": ObjectId(selected_room)}))[0]
-    print("Room: ", room)
-    print("Users: ", room['users']) #treba mi fi
-    print("Flag: ", room['flag']) #ako nije flag na true
-
-
-    #priprema varijabli
-    variable_names = []
-    props_list = []
-    for i in room['variables']: #prodi kroz varijable
-        variable_name = i.keys()       #uzmi nazive varijabli, pr. "NaslovRada"
-        variable_props = i.values()       #uzmi svojstva varijable, pr. {"value": "blabla", "type": "String"}
-        for index in variable_name:    
-            element = ''
-            for k, l in enumerate(index):           #ovo sluzi za stavljanje razmaka u usernameu, k je proslo slovo, l je trenutno slovo
-                if k and l.isupper():
-                    element += ' '
-                element += l
-            variable_names.append(element)              #dodaj element u polje varijabli imena 
-        for index in variable_props:                        
-            properties = (list(index.values())[0])             
-            props_list.append(properties)               #dodaj element u polje varijabli svojstava
-
-    #ovdje se konkateniraju imena i svojstva u jedan objekt koji se kasnije appenda u listu, 1 element liste = 1 message content
-    object_concat = {}                                  
-    list_of_content = []
-    for index in range(len(variable_names)):
-        object_concat = str(variable_names[index]) + ": " + str(props_list[index]) #ovo je content
-        list_of_content.append(object_concat)
-
-    messages = []
-    temporary = {}
-    sender_id = ObjectId(mongo.db.users.find_one({"username": "Fi"})["_id"])
-    room_id = ObjectId(selected_room)
-    timestamp = datetime.datetime.now().isoformat() + "Z"
-
-    for key in range(len(list_of_content)):
-        temporary = {
-            "room_id": room_id,
-            "sender_id": sender_id,
-            "content": list_of_content[key],
-            "timestamp": timestamp,
-            "seen": False
-        }
-        messages.append(temporary)
-    return {"messages": messages}

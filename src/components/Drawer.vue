@@ -24,9 +24,8 @@
           </v-list-item-content>
         </v-list-item>
       </v-list-item-group>
-      <v-divider color="white"></v-divider>
     </v-list>
-    <v-list>
+    <!-- <v-list>
       <v-list-item-group two-line>
         <v-list-item class="pl-2">
           <v-avatar size="40">
@@ -37,7 +36,7 @@
           </v-list-item-content>
         </v-list-item>
       </v-list-item-group>
-    </v-list>
+    </v-list> -->
 </div>
 
     <v-divider color="white"></v-divider>
