@@ -201,5 +201,9 @@ def set_flag(id):
         }}
         mongo.db.chatRooms.update_one({"_id": id}, flag_value)
         return "Flag is set to True"
-    except Exception as e:
-        return json.dumps({'Error': str(e)})
+    except Exception as error:
+        return json.dumps({'Error': str(error)})
+
+
+
+

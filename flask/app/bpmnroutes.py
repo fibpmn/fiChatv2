@@ -8,7 +8,7 @@ from app import dbroutes
 from app import externals
 from bson import BSON, json_util, ObjectId
 from flask_cors import cross_origin
-import requests, json, time, re
+import requests, json, time, re, datetime
 
 mongo = PyMongo(app)
 CORS(app, resources={r'/*': {'origins': '*'}})
@@ -62,6 +62,7 @@ def check_state(user):
         task_id = current_task['id']
         task_assignee = None
         task_form_key = None
+    print(task_form_key)
     if task_assignee != None:
         if task_form_key != None:
             task_variables = xmlparser.parse(definition_id, task_form_key)
@@ -95,19 +96,29 @@ def check_state(user):
             external_topic_name = current_task['topicName']
             external_worker_id = 'worker' + user
             print(external_task_id)
-            # if external_topic_name == 'test':
-            #     response = externals.test(external_task_id, external_topic_name, external_worker_id)
-            # elif external_topic_name == 'izracunaj_skolarinu':
-            #     #tu ce biti i varijable iz camunde, tip studenta
-            #     response = externals.izracunaj_skolarinu()
-            # elif external_topic_name == 'upisi_studenta':
-            #     #takoder ce se slati varijable
-            #     response = externals.upisi_studenta()
-            # elif external_topic_name == 'unos_prijave':
-            #     #ista stvar
-            #     response = externals.unos_prijave()
+            if external_topic_name == 'test':
+                response = externals.test(external_task_id, external_topic_name, external_worker_id)
+            elif external_topic_name == 'izracunaj_skolarinu':
+                response = externals.izracunaj_skolarinu(external_task_id, external_topic_name, external_worker_id, variables)
+            elif external_topic_name == 'upisi_studenta':
+                response = externals.upisi_studenta(external_task_id, external_topic_name, external_worker_id, variables)
+            elif external_topic_name == 'unos_prijave':
+                response = externals.unos_prijave(external_task_id, external_topic_name, external_worker_id, variables)
             return "pepe"
 
+
+@app.route('/api/task/complete', methods=['POST'])
+@cross_origin()
+def general_complete(user):
+    data = request.json()
+    instance_variables = data['variables']    
+    selected_room = json.loads(dbroutes.get_selected_room(user))[0]
+    instance_id = selected_room['processInstanceId']
+    definition_id = selected_room['definitionId']
+    room_id = selected_room['_id']
+    current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
+    task_id = current_task['id']
+    return camundarest.complete_user_task(task_id, instance_variables)
 
 #FUNCTION USED IN VUE GENERATOR FOMR, NOT TO BE USED IN CHAT
 #GET MENTORS 
@@ -135,7 +146,7 @@ def get_task_id_for_task_completion(username):
     user_object = mongo.db.users.find_one({"username": username})
     selected_room = user_object['selectedRoom'] 
     definition_id = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room)})['definitionId']
-    instance_id = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room)})['instanceId']
+    instance_id = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room)})['processInstanceId']
     task = json.loads(camundarest.get_user_task(definition_id, instance_id))
     task_id = task[0]['id']
     return task_id
@@ -163,3 +174,55 @@ def complete_user_task(id):
     mongo.db.chatRooms.update_one({"_id": query}, var_values)
     return camundarest.complete_user_task(id, instance_variables)
 
+@app.route('/api/variables/<user>', methods=['GET'])
+@cross_origin()
+def make_messages_out_of_database_variables(user):
+    selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
+    print("Selected Room: ", selected_room)
+    print(repr(selected_room))
+    room = list(mongo.db.chatRooms.find({"_id": ObjectId(selected_room)}))[0]
+    print("Room: ", room)
+    print("Users: ", room['users']) #treba mi fi
+    print("Flag: ", room['flag']) #ako nije flag na true
+
+
+    #priprema varijabli
+    variable_names = []
+    props_list = []
+    for i in room['variables']: #prodi kroz varijable
+        variable_name = i.keys()       #uzmi nazive varijabli, pr. "NaslovRada"
+        variable_props = i.values()       #uzmi svojstva varijable, pr. {"value": "blabla", "type": "String"}
+        for index in variable_name:    
+            element = ''
+            for k, l in enumerate(index):           #ovo sluzi za stavljanje razmaka u usernameu, k je proslo slovo, l je trenutno slovo
+                if k and l.isupper():
+                    element += ' '
+                element += l
+            variable_names.append(element)              #dodaj element u polje varijabli imena 
+        for index in variable_props:                        
+            properties = (list(index.values())[0])             
+            props_list.append(properties)               #dodaj element u polje varijabli svojstava
+
+    #ovdje se konkateniraju imena i svojstva u jedan objekt koji se kasnije appenda u listu, 1 element liste = 1 message content
+    object_concat = {}                                  
+    list_of_content = []
+    for index in range(len(variable_names)):
+        object_concat = str(variable_names[index]) + ": " + str(props_list[index]) #ovo je content
+        list_of_content.append(object_concat)
+
+    messages = []
+    temporary = {}
+    sender_id = ObjectId(mongo.db.users.find_one({"username": "Fi"})["_id"])
+    room_id = ObjectId(selected_room)
+    timestamp = datetime.datetime.now().isoformat() + "Z"
+
+    for key in range(len(list_of_content)):
+        temporary = {
+            "room_id": room_id,
+            "sender_id": sender_id,
+            "content": list_of_content[key],
+            "timestamp": timestamp,
+            "seen": False
+        }
+        messages.append(temporary)
+    return {"messages": messages}

@@ -10,7 +10,7 @@ import json
 CORS(app, resources={r'/*': {'origins': '*'}})
 
 def parse(process_definition_id, form_key):
-    res = camundarest.get_process_xml(process_definition_id)  # res gets dictionary
+    res = json.loads(camundarest.get_process_xml(process_definition_id))  # res gets dictionary
     xml = res['bpmn20Xml']  # xml is stored in value of res
     tree = ET.ElementTree(ET.fromstring(xml))
     root = tree.getroot()

@@ -42,11 +42,12 @@ export default {
       currentUserId: this.$store.state.id,
       fiId: null,
       receptionRoom: null,
-      messagesByBot: null
+      messagesByBot: null,
+      username: this.$store.state.username
     };
   },
   mounted() {
-    if (this.$store.state.auth) this.fetchRooms(), this.setFi()
+    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.dbVars()
     else this.dialog = true;
   },
   destroyed() {
@@ -58,6 +59,12 @@ export default {
       console.log(user);
       let response = await Camunda.tonijevafunkcija(user);
       console.log(response);
+    },
+    async dbVars() {
+      var user = this.username
+      console.log(user)
+      let response = await Camunda.getVars(user);
+      console.log(response)
     },
     resetRooms() {
       this.loadingRooms = true;

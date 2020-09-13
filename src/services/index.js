@@ -19,6 +19,10 @@ let Auth = {
 }
 
 let Camunda = {
+    async getVars(user) {
+        let response = await Service.get(`/api/variables/${user}`)
+        return response.data
+    },
     //start process instance
     async getProcesses() {
         let response = await Service.get('/api/process-definitions')
