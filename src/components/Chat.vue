@@ -25,6 +25,7 @@ import ChatWindow from "vue-advanced-chat";
 import "vue-advanced-chat/dist/vue-advanced-chat.css";
 import { Rooms, Users, Messages, Camunda } from "@/services";
 import { parseTimestamp, isSameDay } from "@/utils/dates";
+import router from "../router";
 
 export default {
   components: {
@@ -40,17 +41,38 @@ export default {
       messages: [],
       messagesLoaded: false,
       currentUserId: this.$store.state.id,
+      username: this.$store.state.username,
       fiId: null,
       receptionRoom: null,
       messagesByBot: null,
-      username: this.$store.state.username
+      lastRoomMessage: null,
+      interval: null,
+      awaitingResponse: false,
+      processes: null
     };
   },
-  mounted() {
-    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.dbVars()
-    else this.dialog = true;
+  computed: {
+    lastMessage: function () {
+      if (!(this.messages === undefined || this.messages.length == 0)) {
+        return [
+          {
+            sender: this.messages[this.messages.length - 1].sender_id,
+            content: this.messages[this.messages.length - 1].content,
+          },
+        ];
+      }
+      return "None";
+    },
   },
-
+  mounted() {
+    if (this.$store.state.auth) {
+      this.fetchRooms();
+      this.setFi();
+       this.dbVars();
+    } else {
+      this.dialog = true;
+    }
+  },
   destroyed() {
     this.resetRooms();
   },
@@ -156,7 +178,7 @@ export default {
         this.selectedRoom == this.receptionRoom &&
         this.messagesByBot == false
       ) {
-        var processes = await Camunda.getProcesses();
+        this.processes = await Camunda.getProcesses();
         let iterator = 1;
         let content = "Hej! Dobrodošao. Izaberi proces:";
         const message = {
@@ -168,7 +190,7 @@ export default {
         };
         await Messages.addMessage(message);
 
-        for (const process of processes) {
+        for (const process of this.processes) {
           const message1 = {
             room_id: this.receptionRoom,
             sender_id: this.fiId,
@@ -180,6 +202,7 @@ export default {
 
           iterator++;
         }
+        this.awaitingResponse = true;
       }
     },
 
@@ -233,7 +256,6 @@ export default {
         };
         iterator++;
       });
-      //this.getLastRoomMessage(roomId);
       this.messages = messageList;
       this.messagesLoaded = true;
     },
@@ -247,7 +269,8 @@ export default {
         seen: false,
       };
       await Messages.addMessage(message);
-      this.refreshMessages(roomId);
+      await this.refreshMessages(roomId);
+      this.processStart();
     },
 
     formatLastMessage(message) {
@@ -271,7 +294,6 @@ export default {
           (!message.seen || !message.seen[this.currentUserId]),
       };
     },
-
     async getLastRoomMessage(room) {
       //opcenito
       const LastRoomMessage = await Messages.getLastRoomMessage(room);
@@ -279,7 +301,6 @@ export default {
         this.lastRoomMessage = LastRoomMessage[0].content;
       return LastRoomMessage;
     },
-
     async getLastMessage(room) {
       //za settanje propertija sobe
       const LastRoomMessage = await Messages.getLastRoomMessage(room);
@@ -315,6 +336,21 @@ export default {
         else this.messagesByBot = true;
       } else {
         this.receptionRoom = "None";
+      }
+    },
+
+    async processStart() {
+      if (
+        this.currentUserId != this.fiId &&
+        this.selectedRoom == this.receptionRoom &&
+        this.awaitingResponse
+      )
+        this.awaitingResponse = false;
+      if (this.lastMessage[0].content.includes("1")) {
+        await Camunda.StartProcessInstance(this.processes[0].key, this.processes[0].name, this.$store.state.username)
+        router.push("UserTaskForm");
+      } else if (this.lastMessage[0].content.includes("2")) {
+        console.log("izvrsavamo proces 2");
       }
     },
   },
