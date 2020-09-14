@@ -151,8 +151,8 @@ let Messages = {
             }
         })
     },
-    addMessage(message) {
-        Service.post('/api/messages',
+    async addMessage(message) {
+        let response = await Service.post('/api/messages',
             {
                 room_id: message.room_id,
                 content: message.content,
@@ -160,30 +160,16 @@ let Messages = {
                 timestamp: message.timestamp,
                 seen: message.seen
             })
-            .then(
-                response => {
-                    response;
-                },
-                error => {
-                    console.log(error);
-                }
-            );
-
+            return response;
     },
-    updateMessageField(room, field, value) {
-        Service.put('/api/messages', {
+
+    async updateMessageField(room, field, value) {
+        let response = await Service.put('/api/messages', {
             room: room,
             field: field,
             value: value
         })
-            .then(
-                response => {
-                    response;
-                },
-                error => {
-                    console.log(error);
-                }
-            );
+        return response;
     }
 }
 
@@ -215,20 +201,13 @@ let Users = {
         });
     },
     
-    updateUserField(user, field, value) {
-        Service.post('/api/updateUserField', {
+    async updateUserField(user, field, value) {
+        let response = await Service.post('/api/updateUserField', {
             user: user,
             field: field,
             value: value
         })
-            .then(
-                response => {
-                    response;
-                },
-                error => {
-                    console.log(error);
-                }
-            );
+        return response
     }
 }
 
