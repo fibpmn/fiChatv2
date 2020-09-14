@@ -13,7 +13,6 @@ def get_external_task(processDefinitionId, processInstanceId):
     }
     try:
         req = requests.request("GET", endpoint, params=params)
-        print(req)
         if req.status_code == 200:
             return req.text
         elif req.status_code == 400:
@@ -71,7 +70,6 @@ def get_user_task(processDefinitionId, processInstanceId):
     }
     try:
         req = requests.request("GET", endpoint, params=params)
-        print(repr(req))
         if req.status_code == 200:
             return req.text
         elif req.status_code == 400:
@@ -140,6 +138,22 @@ def start_process_instance_key(key, user, business_key): #user
     except requests.exceptions.RequestException as error:
         return json.dumps({'Error': str(error)})
 
-
+def check_process_instance_status(instance_id, business_key, definition_id):
+    endpoint = url + "/history/process-instance/"
+    params = {
+        "processInstanceId": instance_id,
+        "processInstanceBusinessKey": business_key,
+        "processDefinitionId": definition_id,
+    }
+    try:
+        req = requests.request("GET", endpoint, params=params)
+        if req.status_code == 200:
+            return req.text
+        elif req.status_code == 404:
+            return req.text, req.status_code
+        elif req.status_code == 500:
+            return req.text, req.status_code
+    except requests.exceptions.RequestException as error:
+        return json.dumps({'Error': str(error)})
 
 

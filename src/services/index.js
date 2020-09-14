@@ -19,6 +19,10 @@ let Auth = {
 }
 
 let Camunda = {
+    async genComplete(user, variables) {
+        await Service.post(`/api/tasks/complete/${user}`, {variables})
+    },
+
     async getVars(user) {
         let response = await Service.get(`/api/variables/${user}`)
         return response.data

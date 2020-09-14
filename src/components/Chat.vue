@@ -47,7 +47,7 @@ export default {
     };
   },
   mounted() {
-    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.dbVars()
+    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.tonijevafunkcija()//this.dbVars()
     else this.dialog = true;
   },
 
@@ -57,6 +57,7 @@ export default {
   methods: {
     async tonijevafunkcija() {
       var user = this.username;
+      console.log(this.selectedRoom)
       console.log(user);
       let response = await Camunda.tonijevafunkcija(user);
       console.log(response);
@@ -132,7 +133,6 @@ export default {
       Object.keys(roomList).forEach((key) => {
         const room = roomList[key];
         const roomContacts = room.users.filter((user) => user._id !== this.currentUserId);
-        debugger;
         room.roomName = room.roomName + " - " + 
         roomContacts.map((user) => (user.firstName)) + " " + roomContacts.map((user) => (user.lastName))
         const roomAvatar =

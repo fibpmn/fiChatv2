@@ -26,12 +26,14 @@ def izracunaj_skolarinu(external_task_id, external_task_topic, external_task_wor
     resp = camundarest.complete_external_task(external_task_id, external_task_worker, variables)        
     return resp
 
-def upisi_studenta(external_task_id, external_task_topic, external_task_worker, variables):
+def upisi_studenta(external_task_id, external_task_topic, external_task_worker, variables, user):
+    user_exists = list(mongo.db.users.find({"username": user}))
     #Pozovi varijable iz baze(chatRooms): Ime, Prezime, status studenta
     #resp = camundarest.complete_external_task(external_task_id, external_task_worker, variables)
     return "ok"
 
-def unos_prijave(external_task_id, external_task_topic, external_task_worker, variables):
+def unos_prijave(external_task_id, external_task_topic, external_task_worker, variables, user):
+
     #Pozovi varijable iz baze (chatRooms): Ime, Prezime, Mentor,...
     #resp = camundarest.complete_external_task(external_task_id, external_task_worker, variables)
     return "ok"
