@@ -44,6 +44,7 @@ def fetch_and_lock(workerId, topicName):
 
 def complete_external_task(id, workerId, variables):
     endpoint = url + "/external-task/" + id + "/complete"
+    print("Worker ID: ", workerId)
     body = {
         "workerId": workerId,
         "variables": variables

@@ -51,11 +51,7 @@ def check_state(user):
     variables = selected_room['variables']
     flag = selected_room['flag']
     room_id = selected_room['_id']
-    print("Room_id: ", room_id)
-    print(instance_id)
-    print("Selected room: ", selected_room)
     status = json.loads(camundarest.check_process_instance_status(instance_id, business_key, definition_id))[0]['state']
-    print(status)
     if status == 'ACTIVE':
         if camundarest.get_user_task(definition_id, instance_id) != '[]':
             current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
@@ -67,7 +63,7 @@ def check_state(user):
             task_id = current_task['id']
             task_assignee = None
             task_form_key = None
-        print(task_form_key)
+
         if task_assignee != None:
             if task_form_key != None:
                 task_variables = xmlparser.parse(definition_id, task_form_key)
@@ -78,7 +74,7 @@ def check_state(user):
                             "databaseVariables": variables,
                             "serviceVariables": task_variables,
                         }
-                        return task_variables
+                        return data
                     else:
                         return task_variables                
                 else:
@@ -100,16 +96,13 @@ def check_state(user):
                 external_task_id = task_id
                 external_topic_name = current_task['topicName']
                 external_worker_id = 'worker' + user
-                #print(external_task_id)
-                if external_topic_name == 'test':
-                    response = externals.test(external_task_id, external_topic_name, external_worker_id)
-                elif external_topic_name == 'izracunaj_skolarinu':
+                if external_topic_name == 'izracunaj_skolarinu':
                     response = externals.izracunaj_skolarinu(external_task_id, external_topic_name, external_worker_id, variables)
                 elif external_topic_name == 'upisi_studenta':
                     response = externals.upisi_studenta(external_task_id, external_topic_name, external_worker_id, variables, user)
                 elif external_topic_name == 'unos_prijave':
                     response = externals.unos_prijave(external_task_id, external_topic_name, external_worker_id, variables, user)
-                return "pepe"
+                return response
     else:
         mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, {'$set': {'active': False}})
         return "Proces je završen"
@@ -119,7 +112,6 @@ def check_state(user):
 @cross_origin()
 def general_complete(user):
     data = request.get_json()
-    print(data)
     selected_room = json.loads(dbroutes.get_selected_room(user))[0]
     instance_id = selected_room['processInstanceId']
     definition_id = selected_room['definitionId']
@@ -127,21 +119,16 @@ def general_complete(user):
     current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
     task_id = current_task['id']
     if data != []:
-        instance_variables = data['variables']    
-        # selected_room = json.loads(dbroutes.get_selected_room(user))[0]
-        # instance_id = selected_room['processInstanceId']
-        # definition_id = selected_room['definitionId']
-        # room_id = selected_room['_id']
-        #current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
+        instance_variables = data['variables'] 
         var_values = {
             '$addToSet': {
                 "variables": instance_variables
             }
         }
         query = list(mongo.db.chatRooms.find({"_id": selected_room, "initial": False}))
-        mongo.db.chatRooms.update_one({"_id": query}, var_values)
-        #posalji varijable na bazu
-        return camundarest.complete_user_task(task_id, instance_variables)
+        mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, var_values)
+
+        #return camundarest.complete_user_task(task_id, instance_variables)
     else:
         instance_variables = None
         return camundarest.complete_user_task(task_id, instance_variables)
@@ -152,7 +139,6 @@ def general_complete(user):
 def make_messages_out_of_database_variables(user):
     selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
     room = list(mongo.db.chatRooms.find({"_id": ObjectId(selected_room)}))[0]
-    #print("Room: ", room)
     flag = room['flag']
     if flag != True:
         variable_names = []
