@@ -76,13 +76,8 @@ export default {
     },
   },
   mounted() {
-    if (this.$store.state.auth) {
-      this.fetchRooms();
-      this.setFi();
-      this.dbVars();
-    } else {
-      this.dialog = true;
-    }
+    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.tonijevafunkcija()//this.dbVars()
+    else this.dialog = true;
   },
   destroyed() {
     this.resetRooms();
@@ -90,6 +85,7 @@ export default {
   methods: {
     async tonijevafunkcija() {
       var user = this.username;
+      console.log(this.selectedRoom)
       console.log(user);
       let response = await Camunda.tonijevafunkcija(user);
       console.log(response);

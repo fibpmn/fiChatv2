@@ -43,83 +43,95 @@ def start_instance(key):
     return "ok"
 
 @app.route('/api/task/state/<user>', methods=["GET"])
-@cross_origin()
 def check_state(user):
     selected_room = json.loads(dbroutes.get_selected_room(user))[0]
     instance_id = selected_room['processInstanceId']
     definition_id = selected_room['definitionId']
+    business_key = selected_room['businessKey']
     variables = selected_room['variables']
     flag = selected_room['flag']
     room_id = selected_room['_id']
-    print("Selected room: ", selected_room)
-    if camundarest.get_user_task(definition_id, instance_id) != '[]':
-        current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
-        task_id = current_task['id']
-        task_form_key = current_task['formKey']
-        task_assignee = current_task['assignee']
-    else: 
-        current_task = json.loads(camundarest.get_external_task(definition_id, instance_id))[0]
-        task_id = current_task['id']
-        task_assignee = None
-        task_form_key = None
-    print(task_form_key)
-    if task_assignee != None:
-        if task_form_key != None:
-            task_variables = xmlparser.parse(definition_id, task_form_key)
-            if variables != []:
-                if flag == False:
-                    dbroutes.set_flag(room_id)
-                    data = { 
-                        "databaseVariables": variables,
-                        "serviceVariables": task_variables,
-                    }
-                    return task_variables
+    status = json.loads(camundarest.check_process_instance_status(instance_id, business_key, definition_id))[0]['state']
+    if status == 'ACTIVE':
+        if camundarest.get_user_task(definition_id, instance_id) != '[]':
+            current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
+            task_id = current_task['id']
+            task_form_key = current_task['formKey']
+            task_assignee = current_task['assignee']
+        else: 
+            current_task = json.loads(camundarest.get_external_task(definition_id, instance_id))[0]
+            task_id = current_task['id']
+            task_assignee = None
+            task_form_key = None
+
+        if task_assignee != None:
+            if task_form_key != None:
+                task_variables = xmlparser.parse(definition_id, task_form_key)
+                if variables != []:
+                    if flag == False:
+                        mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, {'$set': {'flag': True}})
+                        data = { 
+                            "databaseVariables": variables,
+                            "serviceVariables": task_variables,
+                        }
+                        return data
+                    else:
+                        return task_variables                
                 else:
-                    return task_variables                
+                    return task_variables
             else:
-                return task_variables
+                if flag == False:
+                        mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, {'$set': {'flag': True}})
+                        data = {
+                            "databaseVariables": variables,
+                            "serviceVariables": task_variables,
+                        }
+                        return data
+                else: 
+                    return "Chat logika"
         else:
-            if flag == False:
-                    dbroutes.set_flag(room_id)
-                    data = {
-                        "databaseVariables": variables,
-                        "serviceVariables": task_variables,
-                    }
-                    return data
-            else: 
-                return "Chat logika"
+            if task_form_key != None:
+                return "Task mora odraditi druga osoba"
+            else:
+                external_task_id = task_id
+                external_topic_name = current_task['topicName']
+                external_worker_id = 'worker' + user
+                if external_topic_name == 'izracunaj_skolarinu':
+                    response = externals.izracunaj_skolarinu(external_task_id, external_topic_name, external_worker_id, variables)
+                elif external_topic_name == 'upisi_studenta':
+                    response = externals.upisi_studenta(external_task_id, external_topic_name, external_worker_id, variables, user)
+                elif external_topic_name == 'unos_prijave':
+                    response = externals.unos_prijave(external_task_id, external_topic_name, external_worker_id, variables, user)
+                return response
     else:
-        if task_form_key != None:
-            return "Task mora odraditi druga osoba"
-        else:
-            external_task_id = task_id
-            external_topic_name = current_task['topicName']
-            external_worker_id = 'worker' + user
-            print(external_task_id)
-            if external_topic_name == 'test':
-                response = externals.test(external_task_id, external_topic_name, external_worker_id)
-            elif external_topic_name == 'izracunaj_skolarinu':
-                response = externals.izracunaj_skolarinu(external_task_id, external_topic_name, external_worker_id, variables)
-            elif external_topic_name == 'upisi_studenta':
-                response = externals.upisi_studenta(external_task_id, external_topic_name, external_worker_id, variables)
-            elif external_topic_name == 'unos_prijave':
-                response = externals.unos_prijave(external_task_id, external_topic_name, external_worker_id, variables)
-            return "pepe"
+        mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, {'$set': {'active': False}})
+        return "Proces je završen"
 
 
-
-@app.route('/api/task/complete', methods=['POST'])
+@app.route('/api/tasks/complete/<user>', methods=['POST'])
 @cross_origin()
 def general_complete(user):
-    data = request.json()
-    instance_variables = data['variables']    
+    data = request.get_json()
     selected_room = json.loads(dbroutes.get_selected_room(user))[0]
     instance_id = selected_room['processInstanceId']
     definition_id = selected_room['definitionId']
     room_id = selected_room['_id']
     current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
     task_id = current_task['id']
-    return camundarest.complete_user_task(task_id, instance_variables)
+    if data != []:
+        instance_variables = data['variables'] 
+        var_values = {
+            '$addToSet': {
+                "variables": instance_variables
+            }
+        }
+        query = list(mongo.db.chatRooms.find({"_id": selected_room, "initial": False}))
+        mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, var_values)
+
+        #return camundarest.complete_user_task(task_id, instance_variables)
+    else:
+        instance_variables = None
+        return camundarest.complete_user_task(task_id, instance_variables)
 
 #DATABASE VARS INTO MESSAGES FORMATTER
 @app.route('/api/variables/<user>', methods=['GET'])
@@ -127,7 +139,6 @@ def general_complete(user):
 def make_messages_out_of_database_variables(user):
     selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
     room = list(mongo.db.chatRooms.find({"_id": ObjectId(selected_room)}))[0]
-    print("Room: ", room)
     flag = room['flag']
     if flag != True:
         variable_names = []
