@@ -1,22 +1,24 @@
 <template>
   <v-container class="bg" fill-height fluid>
-  <v-row align="center" justify="center">
-    <v-col class="col-3"></v-col>
-    <v-col class="col-6">
-      <div v-if="show">
-      <v-sheet elevation="1" tile color="white" class="mt-16 pa-5">
-        <vue-form-generator :schema="schema" :model="model" :options="formOptions"></vue-form-generator>
-        <v-btn class="ml-2 mt-1" tile depressed @click="SendTaskVariables">Pošalji</v-btn>
-      </v-sheet>
-      </div>
-    </v-col>
-    <v-col div="col-3"></v-col>
-  </v-row>
+    <v-row align="center" justify="center">
+      <v-col class="col-3"></v-col>
+      <v-col class="col-6">
+        <div v-if="show">
+          <v-sheet elevation="1" tile color="white" class="mt-16 pa-5">
+            <vue-form-generator :schema="schema" :model="model" :options="formOptions"></vue-form-generator>
+            <v-btn class="ml-2 mt-1" tile depressed @click="SendTaskVariables">Pošalji</v-btn>
+          </v-sheet>
+          <v-alert :value="success" type="success">Podaci su uspješno poslani.</v-alert>
+        </div>
+      </v-col>
+      <v-col div="col-3"></v-col>
+    </v-row>
   </v-container>
 </template>
 
 <script>
 import { Camunda } from "@/services";
+import router from "../router";
 
 export default {
   name: "UserTaskForm",
@@ -29,8 +31,9 @@ export default {
       formOptions: {
         validateAfterLoad: true,
         validateAfterChanged: true,
-        validateAsync: true
-      }
+        validateAsync: true,
+      },
+      success: false,
     };
   },
   mounted() {
@@ -39,35 +42,35 @@ export default {
   methods: {
     async tonijevafunkcija() {
       var username = this.username;
-      var data = await Camunda.tonijevafunkcija(username)
-      if (typeof data != 'string') {
-        this.show = true
-      var mentori = await Camunda.getMentors();
-      if (data.model.Mentor != null) {
-        for (let i = 0; i < data.schema.fields.length; i++) {
-          if (data.schema.fields[i].model == "Mentor") {
-            delete data.schema.fields[i].inputType;
-            data.schema.fields[i].type = "select";
-            data.schema.fields[i].values = mentori[0]; //generator zahtijeva array, problem unutarnje pretvorbe?
+      var data = await Camunda.tonijevafunkcija(username);
+      if (typeof data != "string") {
+        this.show = true;
+        var mentori = await Camunda.getMentors();
+        if (data.model.Mentor != null) {
+          for (let i = 0; i < data.schema.fields.length; i++) {
+            if (data.schema.fields[i].model == "Mentor") {
+              delete data.schema.fields[i].inputType;
+              data.schema.fields[i].type = "select";
+              data.schema.fields[i].values = mentori[0]; //generator zahtijeva array, problem unutarnje pretvorbe?
+            }
           }
-        }
-        this.model = data.model;
-        this.schema = data.schema;
+          this.model = data.model;
+          this.schema = data.schema;
         }
       }
     },
     async SendTaskVariables() {
       var temp = {};
       var variables = {};
-      Object.entries(this.model).map(fieldM => {
-        Object.entries(this.schema.fields).map(fieldS => {
+      Object.entries(this.model).map((fieldM) => {
+        Object.entries(this.schema.fields).map((fieldS) => {
           if (typeof fieldM[1] === "boolean") fieldS[1].inputType = "boolean";
           else fieldS[1].inputType = "String";
           temp = {
             [`${fieldM[0]}`]: {
               value: fieldM[1],
-              type: fieldS[1].inputType
-            }
+              type: fieldS[1].inputType,
+            },
           };
         });
         Object.assign(variables, temp);
@@ -76,8 +79,10 @@ export default {
       let username = this.username;
       let id = await Camunda.getTaskIdForTaskCompletion(username);
       await Camunda.completeTaskForm(id, variables, username);
-    }
-  }
+      this.success = true;
+      setTimeout(router.push({ name: "Chat" }), 4000);
+    },
+  },
 };
 </script>
 

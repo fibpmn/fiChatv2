@@ -8,6 +8,8 @@
       :loadingRooms="loadingRooms"
       :messages="messages"
       :messagesLoaded="messagesLoaded"
+      :styles="styles"
+      :roomId="roomId"
       @sendMessage="sendMessage"
       @fetchMessages="fetchMessages"
     />
@@ -39,16 +41,25 @@ export default {
       loadingRooms: false,
       rooms: [],
       messages: [],
+      styles: {
+        message: {
+          background: "#fff",
+          backgroundMe: "#c4e3fc",
+          color: "#0a0a0a",
+          //colorStarted: "#f8f9fa",
+        },
+      },
       messagesLoaded: false,
       currentUserId: this.$store.state.id,
       username: this.$store.state.username,
       fiId: null,
+      roomId: null,
       receptionRoom: null,
       messagesByBot: null,
       lastRoomMessage: null,
       interval: null,
       awaitingResponse: false,
-      processes: null
+      processes: null,
     };
   },
   computed: {
@@ -68,7 +79,7 @@ export default {
     if (this.$store.state.auth) {
       this.fetchRooms();
       this.setFi();
-       this.dbVars();
+      this.dbVars();
     } else {
       this.dialog = true;
     }
@@ -84,10 +95,10 @@ export default {
       console.log(response);
     },
     async dbVars() {
-      var user = this.username
-      console.log(user)
+      var user = this.username;
+      console.log(user);
       let response = await Camunda.getVars(user);
-      console.log(response)
+      console.log(response);
     },
     resetRooms() {
       this.loadingRooms = true;
@@ -153,14 +164,20 @@ export default {
       const formattedRooms = [];
       Object.keys(roomList).forEach((key) => {
         const room = roomList[key];
-        const roomContacts = room.users.filter((user) => user._id !== this.currentUserId);
-        debugger;
-        room.roomName = room.roomName + " - " + 
-        roomContacts.map((user) => (user.firstName)) + " " + roomContacts.map((user) => (user.lastName))
+        const roomContacts = room.users.filter(
+          (user) => user._id !== this.currentUserId
+        );
+        room.roomName =
+          room.roomName +
+          " - " +
+          roomContacts.map((user) => {
+            if (user.firstName === "Fi") return " " + user.firstName;
+            else return " " + user.firstName + " " + user.lastName;
+          });
         const roomAvatar =
-          roomContacts.length === 1 && roomContacts[0].avatar
-            ? roomContacts[0].avatar
-            : require("../../public/Fi-mini.png");
+          roomContacts.length === 1 && roomContacts[0].username === "Fi"
+            ? require("../../public/Fi-mini.png")
+            : require("../../public/icon.png");
         formattedRooms.push({
           ...{
             roomId: key,
@@ -347,7 +364,17 @@ export default {
       )
         this.awaitingResponse = false;
       if (this.lastMessage[0].content.includes("1")) {
-        await Camunda.StartProcessInstance(this.processes[0].key, this.processes[0].name, this.$store.state.username)
+        await Camunda.StartProcessInstance(
+          this.processes[0].key,
+          this.processes[0].name,
+          this.$store.state.username
+        );
+        let rooms = await Rooms.getUserRooms(this.currentUserId);
+        await Users.updateUserField(
+          this.currentUserId,
+          "selectedRoom",
+          rooms[rooms.length - 1].roomId.$oid
+        );
         router.push("UserTaskForm");
       } else if (this.lastMessage[0].content.includes("2")) {
         console.log("izvrsavamo proces 2");
