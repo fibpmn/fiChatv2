@@ -215,8 +215,8 @@ def make_messages_out_of_database_variables(user):
 
         messages = []
         temporary = {}
-        sender_id = ObjectId(mongo.db.users.find_one({"username": "Fi"})["_id"])
-        room_id = ObjectId(selected_room)
+        sender_id = mongo.db.users.find_one({"username": "Fi"})["_id"]
+        room_id = selected_room
         timestamp = datetime.datetime.now().isoformat() + "Z"
 
         for key in range(len(list_of_content)):

@@ -53,13 +53,14 @@ export default {
       currentUserId: this.$store.state.id,
       username: this.$store.state.username,
       fiId: null,
-      roomId: null,
+      roomId: this.$store.state.processRoomId,
       receptionRoom: null,
       messagesByBot: null,
       lastRoomMessage: null,
       interval: null,
       awaitingResponse: false,
       processes: null,
+      variablesForTask: null,
     };
   },
   computed: {
@@ -91,12 +92,12 @@ export default {
     async getVariables() {
       var username = this.username;
       let response = await Camunda.getTaskVariables(username);
-      console.log("Dohvaćene varijable iz Camunde: ", response)
+      console.log("Dohvaćene varijable iz Camunde: ", response);
     },
     async parseDbVariables() {
       var user = this.username;
-      let response = await Camunda.parseDatabaseVariables(user);
-      console.log("Parsirane varijable iz Monga: ", response);
+      this.variablesForTask = await Camunda.parseDatabaseVariables(user);
+      console.log("Parsirane varijable iz Monga: ", this.variablesForTask);
     },
     resetRooms() {
       this.loadingRooms = true;
@@ -203,6 +204,7 @@ export default {
           timestamp: new Date(),
           seen: false,
         };
+        console.log(message);
         await Messages.addMessage(message);
 
         for (const process of this.processes) {
@@ -257,6 +259,7 @@ export default {
         this.getLastRoomMessage(room.roomId);
       }, 9000);
       this.refreshMessages(room.roomId);
+      if (this.$store.state.processRoomId == this.selectedRoom) this.temaTask();
     },
 
     async refreshMessages(roomId) {
@@ -368,6 +371,10 @@ export default {
           this.$store.state.username
         );
         let rooms = await Rooms.getUserRooms(this.currentUserId);
+        this.$store.dispatch(
+          "setProcessRoomId",
+          rooms[rooms.length - 1].roomId.$oid
+        );
         await Users.updateUserField(
           this.currentUserId,
           "selectedRoom",
@@ -377,6 +384,28 @@ export default {
       } else if (this.lastMessage[0].content.includes("2")) {
         console.log("izvrsavamo proces 2");
       }
+    },
+
+    async temaTask() {
+    //   if (
+    //     this.variablesForTask != "Done"
+    //   ) {
+    //     await this.parseDbVariables();
+    //     const variables = this.variablesForTask;
+    //     variables.pop();
+    //     await Promise.all(
+    //       variables.map(async (message) => {
+    //         message.content =
+    //           message.content.replace("False", "ne") &&
+    //           message.content.replace("True", "da");
+    //         message.timestamp = new Date();
+    //         message.sender_id = message.sender_id.$oid;
+    //         await Messages.addMessage(message);
+    //       })
+    //     );
+    //     this.variablesForTask = "Done";
+    //     this.refreshMessages(this.selectedRoom);
+    //   }
     },
   },
 };
