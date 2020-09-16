@@ -29,7 +29,7 @@ def start_instance(key):
     try:
         room = {
             "name": process_name,
-            "users": user_exists['_id'],
+            "users": [user_exists['_id'], ObjectId("5f2ed1c620806f9c4fadc693")],
             "businessKey": data['businessKey'],
             "processInstanceId": data["id"],
             "definitionId": data["definitionId"],
@@ -46,7 +46,7 @@ def start_instance(key):
 @app.route('/api/<user>/task/variables', methods=["GET"])
 def get_task_variables(user):
     selected_room = json.loads(dbroutes.get_selected_room(user))[0]
-    if selected_room['name'] == 'Recepcija':
+    if selected_room['name'] == 'Recepcija' or selected_room == None:
         return "Nema pokrenutih procesa" 
     instance_id = selected_room['processInstanceId']
     definition_id = selected_room['definitionId']
@@ -165,6 +165,22 @@ def send_task_variables(user):
     else:
         instance_variables = None
         return camundarest.complete_user_task(task_id, instance_variables)
+
+@app.route('/api/<user>/task/assignee', methods=['GET'])
+@cross_origin()
+def get_assignee(user):
+    selected_room = json.loads(dbroutes.get_selected_room(user))[0]
+    if selected_room['name'] == 'Recepcija' or selected_room == None:
+        return "Nema pokrenutih procesa" 
+    instance_id = selected_room['processInstanceId']
+    definition_id = selected_room['definitionId']
+    business_key = selected_room['businessKey']
+    try:
+        assignee = json.loads(camundarest.get_current_task_assignee(instance_id, business_key, definition_id))[0]['assignee']
+        print(assignee)
+    except Exception as error:
+        return json.dumps({'Error': str(error)})
+    return assignee
 
 #DATABASE VARS INTO MESSAGES FORMATTER
 @app.route('/api/<user>/task/variables/format', methods=['GET'])

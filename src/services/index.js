@@ -19,6 +19,11 @@ let Auth = {
 }
 
 let Camunda = {
+    async getCurrentTaskAssignee(user) {
+        let response = await Service.get(`/api/${user}/task/assignee`)
+        console.log("indx: ", response.data)
+        return response.data
+    },
     async parseDatabaseVariables(user) {
         let response = await Service.get(`/api/${user}/task/variables/format`)
         return response.data

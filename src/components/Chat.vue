@@ -76,13 +76,18 @@ export default {
     },
   },
   mounted() {
-    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.getVariables()//this.dbVars()
+    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.getVariables(), this.getAssignee()//this.dbVars()
     else this.dialog = true;
   },
   destroyed() {
     this.resetRooms();
   },
   methods: {
+    async getAssignee() {
+      var username = this.username
+      let response = await Camunda.getCurrentTaskAssignee(username)
+      console.log("Trenutni assignee je ", response)
+    },
     async getVariables() {
       var username = this.username;
       let response = await Camunda.getTaskVariables(username);
