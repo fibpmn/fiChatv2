@@ -10,7 +10,8 @@ export default new Vuex.Store({
         lastName: "",
         username: "",
         id: "",
-        initials: ""
+        initials: "",
+        processRoomId: "",
     },
     mutations: {
         setToTrue(state) {
@@ -33,6 +34,9 @@ export default new Vuex.Store({
         },
         setInitials(state, value){
             state.initials = value
+        },
+        setProcessRoomId(state, value){
+            state.processRoomId = value
         }
 
     },
@@ -51,6 +55,9 @@ export default new Vuex.Store({
         },
         setInitials(context, value){
             context.commit('setInitials', value)
-        }
+        },
+        setProcessRoomId(context, value){
+            context.commit('setProcessRoomId', value)
+        },
     }
 })
