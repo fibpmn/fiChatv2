@@ -76,25 +76,22 @@ export default {
     },
   },
   mounted() {
-    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.tonijevafunkcija()//this.dbVars()
+    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.getVariables()//this.dbVars()
     else this.dialog = true;
   },
   destroyed() {
     this.resetRooms();
   },
   methods: {
-    async tonijevafunkcija() {
-      var user = this.username;
-      console.log(this.selectedRoom)
-      console.log(user);
-      let response = await Camunda.tonijevafunkcija(user);
-      console.log(response);
+    async getVariables() {
+      var username = this.username;
+      let response = await Camunda.getTaskVariables(username);
+      console.log("Dohvaćene varijable iz Camunde: ", response)
     },
-    async dbVars() {
+    async parseDbVariables() {
       var user = this.username;
-      console.log(user);
-      let response = await Camunda.getVars(user);
-      console.log(response);
+      let response = await Camunda.parseDatabaseVariables(user);
+      console.log("Parsirane varijable iz Monga: ", response);
     },
     resetRooms() {
       this.loadingRooms = true;

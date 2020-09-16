@@ -19,15 +19,19 @@ let Auth = {
 }
 
 let Camunda = {
-    async genComplete(user, variables) {
-        await Service.post(`/api/tasks/complete/${user}`, {variables})
-    },
-
-    async getVars(user) {
-        let response = await Service.get(`/api/variables/${user}`)
+    async parseDatabaseVariables(user) {
+        let response = await Service.get(`/api/${user}/task/variables/format`)
         return response.data
     },
-    //start process instance
+    //malo veca funkcija, ne znam kako bih ju nazvao
+    async getTaskVariables(user) {
+        let response = await Service.get(`/api/${user}/task/variables`)
+        return response.data;
+    },
+    async sendTaskVariables(user, variables) {
+        await Service.post(`/api/${user}/task/variables`, {variables})
+    },
+    //GET AVAILABLE PROCESSES
     async getProcesses() {
         let response = await Service.get('/api/process-definitions')
         return response.data.map(doc => {
@@ -38,25 +42,12 @@ let Camunda = {
             }
         })
     },
+    //START PROCES INSTANCE
     async StartProcessInstance(key, name, username) {
         await Service.post(`/api/process-instance/${key}`, { name, username })
     },
 
-    //get user task form
-    async getTaskFormVariables(username) {
-        let response = await Service.get(`/api/task/state/${username}`)
-        let doc = response.data
-        return {
-            model: doc.model,
-            schema: doc.schema
-        }
-    },
-    //malo veca funkcija, ne znam kako bih ju nazvao
-    async tonijevafunkcija(user) {
-        let response = await Service.get(`/api/task/state/${user}`)
-        return response.data;
-    },
-    //VUE GENERATOR FORM SPECIFIC
+    //VUE GENERATOR FORM SPECIFIC, NOT TO BE USED IN CHAT
     async getMentors() {
         let response = await Service.get('/api/mentors')
         let data = Object.values(response.data) 
@@ -71,6 +62,7 @@ let Camunda = {
         return response.data
     },    
 }
+
 let Rooms = {
     async getAll() {
         let response = await Service.get('/api/rooms')

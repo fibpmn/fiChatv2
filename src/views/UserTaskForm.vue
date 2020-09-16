@@ -37,12 +37,13 @@ export default {
     };
   },
   mounted() {
-    this.tonijevafunkcija();
+    if (this.$store.state.auth) this.getVariables()
+    else this.dialog = true;
   },
   methods: {
-    async tonijevafunkcija() {
+    async getVariables() {
       var username = this.username;
-      var data = await Camunda.tonijevafunkcija(username);
+      var data = await Camunda.getTaskVariables(username);
       if (typeof data != "string") {
         this.show = true;
         var mentori = await Camunda.getMentors();
