@@ -18,36 +18,36 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 @cross_origin()
 def start_instance(key):
     user = request.get_json()['username']
-    business_key = str(key) + str(user)
-    data = json.loads(camundarest.start_process_instance_key(key, user, business_key))
-    user_exists = list(mongo.db.users.find({"username": user})) 
     process_name = request.get_json()['name']
-    if user_exists[0]['_id'] != None:                          
-        try:
-            room = {
-             "name": process_name,
-             "users": [user_exists[0]['_id']],
-             "businessKey": data['businessKey'],
-             "processInstanceId": data["id"],
-             "definitionId": data["definitionId"],
-             "variables": [],
-             "flag": False,
-             "initial": False,
-             "active": True,
-            }
-            dbroutes.create_room(room)
-        except Exception as e:
-            return json.dumps({'Error': str(e)})
-    else: 
-        return "Korisnik ne postoji"
-    return "ok"
+    business_key = str(key) + str(user)
+    
+    try:
+        data = json.loads(camundarest.start_process_instance_key(key, user, business_key))
+        user_exists = list(mongo.db.users.find({"username": user}))[0]
+    except Exception as error:
+        return json.dumps({'Error': str(error)})                         
+    try:
+        room = {
+            "name": process_name,
+            "users": user_exists['_id'],
+            "businessKey": data['businessKey'],
+            "processInstanceId": data["id"],
+            "definitionId": data["definitionId"],
+            "variables": [],
+            "flag": False,
+            "initial": False,
+            "active": True,
+        }
+        dbroutes.create_room(room)
+    except Exception as e:
+        return json.dumps({'Error': str(e)})
+    return "Soba je kreirana"
 
 @app.route('/api/<user>/task/variables', methods=["GET"])
 def get_task_variables(user):
     selected_room = json.loads(dbroutes.get_selected_room(user))[0]
     if selected_room['name'] == 'Recepcija':
         return "Nema pokrenutih procesa" 
-    print(selected_room)
     instance_id = selected_room['processInstanceId']
     definition_id = selected_room['definitionId']
     business_key = selected_room['businessKey']
