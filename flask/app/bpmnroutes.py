@@ -146,7 +146,7 @@ def get_task_variables(user):
                 return json.dumps({'Error': str(error)})
             return "Proces je završen"
     else:
-        return "Nema soba za ovog korisnika"
+        return "Nema soba instanci za ovog korisnika"
 
 
 @app.route('/api/<user>/task/variables', methods=['POST'])
@@ -230,6 +230,7 @@ def make_messages_out_of_database_variables(user):
             temporary = {
                 "room_id": room_id,
                 "sender_id": sender_id,
+                "username": "Fi",
                 "content": list_of_content[key],
                 "timestamp": timestamp,
                 "seen": False
