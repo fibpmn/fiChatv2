@@ -11,7 +11,8 @@ export default new Vuex.Store({
         username: "",
         id: "",
         initials: "",
-        processRoomId: "",
+        processRoomId1: "",
+        processRoomId2: "",
     },
     mutations: {
         setToTrue(state) {
@@ -35,10 +36,12 @@ export default new Vuex.Store({
         setInitials(state, value){
             state.initials = value
         },
-        setProcessRoomId(state, value){
-            state.processRoomId = value
-        }
-
+        setProcessRoomId1(state, value){
+            state.processRoomId1 = value
+        },
+        setProcessRoomId2(state, value){
+            state.processRoomId2 = value
+        },
     },
     actions: {
         setFirstName(context, value){
@@ -56,8 +59,11 @@ export default new Vuex.Store({
         setInitials(context, value){
             context.commit('setInitials', value)
         },
-        setProcessRoomId(context, value){
-            context.commit('setProcessRoomId', value)
+        setProcessRoomId1(context, value){
+            context.commit('setProcessRoomId1', value)
+        },
+        setProcessRoomId2(context, value){
+            context.commit('setProcessRoomId2', value)
         },
     }
 })

@@ -20,6 +20,22 @@ def getRooms():
     except Exception as e:
         return json.dumps({'error': str(e)})
 
+# updejtaj field sobe
+@app.route('/api/rooms', methods=['PUT'])
+@cross_origin()
+def updateRoomField():
+    try:
+        data = request.get_json()
+        room_id = ObjectId(data["room"])
+        values = {'$set': {
+            data["field"]: data["value"]
+        }}
+        query = {"_id": room_id}
+        mongo.db.chatRooms.update_one(query, values)
+        return "ok"
+    except Exception as e:
+        return json.dumps({'error': str(e)})
+
 #predsoblje
 @app.route('/api/fiRoom', methods=['POST'])
 @cross_origin()

@@ -21,7 +21,6 @@ let Auth = {
 let Camunda = {
     async getCurrentTaskAssignee(user) {
         let response = await Service.get(`/api/${user}/task/assignee`)
-        console.log("indx: ", response.data)
         return response.data
     },
     async parseDatabaseVariables(user) {
@@ -82,7 +81,9 @@ let Rooms = {
                 variables: doc.variables,
                 flag: doc.flag,
                 initial: doc.initial,
-                active: doc.active
+                active: doc.active,
+                awaitingResponse: doc.awaitingResponse,
+                awaitingResponseBy: doc.awaitingResponseBy
             };
         });
     },
@@ -99,10 +100,22 @@ let Rooms = {
                 variables: doc.variables,
                 flag: doc.flag,
                 initial: doc.initial,
-                active: doc.active
+                active: doc.active,
+                awaitingResponse: doc.awaitingResponse,
+                awaitingResponseBy: doc.awaitingResponseBy
             };
         });
     },
+
+    async updateRoomField(room, field, value) {
+        let response = await Service.put('/api/rooms', {
+            room: room,
+            field: field,
+            value: value
+        })
+        return response;
+    },
+
     async createRoom(email, fiemail, name){
         await Service.post(`/api/fiRoom`, { email, fiemail, name })
     }

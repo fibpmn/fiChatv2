@@ -53,12 +53,11 @@ export default {
       currentUserId: this.$store.state.id,
       username: this.$store.state.username,
       fiId: null,
-      roomId: this.$store.state.processRoomId,
+      roomId: null,
       receptionRoom: null,
       messagesByBot: null,
       lastRoomMessage: null,
       interval: null,
-      awaitingResponse: false,
       processes: null,
       variablesForTask: null,
     };
@@ -75,9 +74,25 @@ export default {
       }
       return "None";
     },
+    awaitingResponse: function () {
+      if (!(this.rooms === undefined || this.rooms.length == 0)) {
+        let rooms = this.rooms;
+        let filt = rooms.filter((room) => room.roomId === this.selectedRoom);
+        return filt[0].awaitingResponse
+      }
+      return null;
+    },
+    awaitingResponseBy: function () {
+      if (!(this.rooms === undefined || this.rooms.length == 0)) {
+        let rooms = this.rooms;
+        let filt = rooms.filter((room) => room.roomId === this.selectedRoom);
+        return filt[0].awaitingResponseBy
+      }
+      return null;
+    },
   },
   mounted() {
-    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.getVariables(), this.getAssignee()//this.dbVars()
+    if (this.$store.state.auth) this.fetchRooms(), this.setFi(), this.getVariables(), this.getAssignee()
     else this.dialog = true;
   },
   destroyed() {
@@ -87,7 +102,7 @@ export default {
     async getAssignee() {
       var username = this.username
       let response = await Camunda.getCurrentTaskAssignee(username)
-      console.log("Trenutni assignee je ", response)
+      return response
     },
     async getVariables() {
       var username = this.username;
@@ -120,6 +135,8 @@ export default {
       rooms.map((room) => {
         roomList[room.roomId.$oid] = {
           roomId: room.roomId.$oid,
+          awaitingResponse: room.awaitingResponse,
+          awaitingResponseBy: room.awaitingResponseBy,
           roomName: room.roomName,
           users: [],
         };
@@ -219,7 +236,11 @@ export default {
 
           iterator++;
         }
-        this.awaitingResponse = true;
+        await Rooms.updateRoomField(
+          this.selectedRoom,
+          "awaitingResponse",
+          true
+        );
       }
     },
 
@@ -259,7 +280,8 @@ export default {
         this.getLastRoomMessage(room.roomId);
       }, 9000);
       this.refreshMessages(room.roomId);
-      if (this.$store.state.processRoomId == this.selectedRoom) this.temaTask();
+      if (this.$store.state.processRoomId1 == this.selectedRoom)
+        this.temaTask();
     },
 
     async refreshMessages(roomId) {
@@ -288,7 +310,8 @@ export default {
       };
       await Messages.addMessage(message);
       await this.refreshMessages(roomId);
-      this.processStart();
+      await this.processStart();
+      this.sendVariables();
     },
 
     formatLastMessage(message) {
@@ -357,13 +380,26 @@ export default {
       }
     },
 
+    async getFlagForRoom(processRoom) {
+      let userId = this.currentUserId;
+      let rooms = await Rooms.getUserRooms(userId);
+      let obj = rooms.filter((o) => o.roomId.$oid === processRoom);
+      if (obj.flag == true) this.variablesForTask = "sent";
+      else console.log("Nisu jos poslane varijable.");
+    },
+
     async processStart() {
       if (
         this.currentUserId != this.fiId &&
         this.selectedRoom == this.receptionRoom &&
         this.awaitingResponse
       )
-        this.awaitingResponse = false;
+        await Rooms.updateRoomField(
+          this.selectedRoom,
+          "awaitingResponse",
+          false
+        );
+      if (!this.processes) this.processes = await Camunda.getProcesses();
       if (this.lastMessage[0].content.includes("1")) {
         await Camunda.StartProcessInstance(
           this.processes[0].key,
@@ -372,7 +408,7 @@ export default {
         );
         let rooms = await Rooms.getUserRooms(this.currentUserId);
         this.$store.dispatch(
-          "setProcessRoomId",
+          "setProcessRoomId1",
           rooms[rooms.length - 1].roomId.$oid
         );
         await Users.updateUserField(
@@ -380,32 +416,78 @@ export default {
           "selectedRoom",
           rooms[rooms.length - 1].roomId.$oid
         );
+        this.roomId = rooms[rooms.length - 1].roomId.$oid
+        console.log(this.roomId)
         router.push("UserTaskForm");
       } else if (this.lastMessage[0].content.includes("2")) {
-        console.log("izvrsavamo proces 2");
+        await Camunda.StartProcessInstance(
+          this.processes[1].key,
+          this.processes[1].name,
+          this.$store.state.username
+        );
+        let rooms = await Rooms.getUserRooms(this.currentUserId);
+        this.$store.dispatch(
+          "setProcessRoomId2",
+          rooms[rooms.length - 1].roomId.$oid
+        );
+        await Users.updateUserField(
+          this.currentUserId,
+          "selectedRoom",
+          rooms[rooms.length - 1].roomId.$oid
+        );
+        this.roomId = rooms[rooms.length - 1].roomId.$oid
+
       }
     },
 
     async temaTask() {
-    //   if (
-    //     this.variablesForTask != "Done"
-    //   ) {
-    //     await this.parseDbVariables();
-    //     const variables = this.variablesForTask;
-    //     variables.pop();
-    //     await Promise.all(
-    //       variables.map(async (message) => {
-    //         message.content =
-    //           message.content.replace("False", "ne") &&
-    //           message.content.replace("True", "da");
-    //         message.timestamp = new Date();
-    //         message.sender_id = message.sender_id.$oid;
-    //         await Messages.addMessage(message);
-    //       })
-    //     );
-    //     this.variablesForTask = "Done";
-    //     this.refreshMessages(this.selectedRoom);
-    //   }
+      if (this.variablesForTask != "sent") {
+        await this.parseDbVariables();
+        this.getFlagForRoom(this.$store.state.processRoomId1);
+        const variables = this.variablesForTask;
+        variables.pop();
+        await Promise.all(
+          variables.map(async (message) => {
+            message.content = message.content.replace("False", "ne");
+            message.content = message.content.replace("false", "ne");
+            message.content = message.content.replace("True", "da");
+            message.timestamp = new Date();
+            message.sender_id = message.sender_id.$oid;
+            await Messages.addMessage(message);
+          })
+        );
+        this.variablesForTask = "sent";
+        this.refreshMessages(this.selectedRoom);
+        let assignee = await this.getAssignee()
+        let users = await Users.getAll();
+        let obj = users.find((o) => o.username === assignee);
+        let taskAssignee = obj.id.$oid;
+        await Rooms.updateRoomField(
+          this.selectedRoom,
+          "awaitingResponse",
+          true
+        );
+        await Rooms.updateRoomField(
+          this.selectedRoom,
+          "awaitingResponseBy",
+          taskAssignee
+        );
+      }
+    },
+
+    async sendVariables() {
+      if (
+        this.awaitingResponse &&
+        this.awaitingResponseBy == this.currentUserId
+      ) {
+        if (this.lastMessage[0].content.includes("Da")) {
+          console.log("salji varijable");
+        } else if (this.lastMessage[0].content.includes("Ne")) {
+          console.log("oet salji varijable");
+        } else {
+          //pls ponovi upis ne kuzim
+        }
+      }
     },
   },
 };
