@@ -44,6 +44,7 @@ def start_instance(key):
     return "Soba je kreirana"
 
 @app.route('/api/<user>/task/variables', methods=["GET"])
+@cross_origin()
 def get_task_variables(user):
     selected_room = json.loads(dbroutes.get_selected_room(user))[0]
     if selected_room['name'] == 'Recepcija' or selected_room == None:
@@ -54,6 +55,7 @@ def get_task_variables(user):
     variables = selected_room['variables']
     flag = selected_room['flag']
     room_id = selected_room['_id']
+    print("ROOM_ID: ")
 
     try:
         status = json.loads(camundarest.check_process_instance_status(instance_id, business_key, definition_id))[0]['state']
@@ -255,7 +257,7 @@ def get_mentors():
     return temp
 
 #GET TASK ID
-@app.route('/api/task/complete/<username>')
+@app.route('/api/task/complete/<username>', methods=['GET'])
 @cross_origin()
 def get_task_id_for_task_completion(username):
     user_object = mongo.db.users.find_one({"username": username})

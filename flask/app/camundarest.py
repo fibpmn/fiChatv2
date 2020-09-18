@@ -5,11 +5,11 @@ import requests, json, time
 url = 'http://localhost:8080/engine-rest'
 
 #EXTERNAL TASK
-def get_external_task(processDefinitionId, processInstanceId):
+def get_external_task(process_definition_id, process_instance_id):
     endpoint = url + '/external-task'
     params = {
-        "processDefinitionId": processDefinitionId,
-        "processInstanceId": processInstanceId,
+        "processDefinitionId": process_definition_id,
+        "processInstanceId": process_instanceId,
     }
     try:
         req = requests.request("GET", endpoint, params=params)
@@ -22,14 +22,14 @@ def get_external_task(processDefinitionId, processInstanceId):
     except requests.exceptions.RequestException as error:
         return json.dumps({'Error': str(error)})
 
-def fetch_and_lock(workerId, topicName):
+def fetch_and_lock(worker_id, topic_name):
     endpoint = url + "/external-task/fetchAndLock"
     body = {
-        "workerId": workerId,
+        "workerId": worker_id,
         "maxTasks": 1,
         "asyncResponseTimeout": 5000,
         "topics": [{
-            "topicName": topicName,
+            "topicName": topic_name,
             "lockDuration": 10000,
         }]
     }
@@ -42,11 +42,10 @@ def fetch_and_lock(workerId, topicName):
     except requests.exceptions.RequestException as error:
         return json.dumps({'Error': str(error)})
 
-def complete_external_task(id, workerId, variables):
-    endpoint = url + "/external-task/" + id + "/complete"
-    print("Worker ID: ", workerId)
+def complete_external_task(task_id, worker_id, variables):
+    endpoint = url + "/external-task/" + task_id + "/complete"
     body = {
-        "workerId": workerId,
+        "workerId": worker_id,
         "variables": variables
     }
     try:
@@ -63,11 +62,11 @@ def complete_external_task(id, workerId, variables):
         return json.dumps({'Error': str(error)})
 
 #USER TASK
-def get_user_task(processDefinitionId, processInstanceId):
+def get_user_task(process_definition_id, process_instance_id):
     endpoint = url + '/task'
     params = {
-        "processDefinitionId": processDefinitionId,
-        "processInstanceId": processInstanceId,
+        "processDefinitionId": process_definition_id,
+        "processInstanceId": process_instance_id,
     }
     try:
         req = requests.request("GET", endpoint, params=params)
@@ -80,8 +79,8 @@ def get_user_task(processDefinitionId, processInstanceId):
     except requests.exceptions.RequestException as error:
         return json.dumps({'Error': str(error)})
 
-def get_process_xml(id):
-    endpoint = url + "/process-definition/" + id + "/xml"
+def get_process_xml(process_definition_id):
+    endpoint = url + "/process-definition/" + process_definition_id + "/xml"
     headers = {"Content-Type": "application/xml"}
     try:
         req = requests.request("GET", endpoint, headers=headers)
@@ -94,8 +93,8 @@ def get_process_xml(id):
     except requests.exceptions.RequestException as error:
         return json.dumps({'Error': str(error)})
 
-def complete_user_task(id, variables):
-    endpoint = url + "/task/" + id + "/complete"
+def complete_user_task(task_id, variables):
+    endpoint = url + "/task/" + task_id + "/complete"
     body = {
         "variables": variables,
         "withVariablesInReturn": True
@@ -114,8 +113,8 @@ def complete_user_task(id, variables):
         return json.dumps({'Error': str(error)})
 
 #PROCESS INSTANCE
-def start_process_instance_key(key, user, business_key): #user
-    endpoint = url + "/process-definition/key/" + key + "/start"
+def start_process_instance_key(definition_key, user, business_key): #user
+    endpoint = url + "/process-definition/key/" + definition_key + "/start"
     body = {
         "variables": {
             "initiator": {
@@ -139,12 +138,12 @@ def start_process_instance_key(key, user, business_key): #user
     except requests.exceptions.RequestException as error:
         return json.dumps({'Error': str(error)})
 
-def check_process_instance_status(instance_id, business_key, definition_id):
+def check_process_instance_status(process_instance_id, business_key, process_definition_id):
     endpoint = url + "/history/process-instance/"
     params = {
-        "processInstanceId": instance_id,
+        "processInstanceId": process_instance_id,
         "processInstanceBusinessKey": business_key,
-        "processDefinitionId": definition_id,
+        "processDefinitionId": process_definition_id,
     }
     try:
         req = requests.request("GET", endpoint, params=params)
@@ -157,12 +156,12 @@ def check_process_instance_status(instance_id, business_key, definition_id):
     except requests.exceptions.RequestException as error:
         return json.dumps({'Error': str(error)})
 
-def get_current_task_assignee(instance_id, business_key, definition_id):
+def get_current_task_assignee(process_instance_id, business_key, process_definition_id):
     endpoint = url + "/history/task"
     params = {
-        "processInstanceId": instance_id,
+        "processInstanceId": process_instance_id,
         "processInstanceBusinessKey": business_key,
-        "processDefinitionId": definition_id,
+        "processDefinitionId": process_definition_id,
     }
     try:
         req = requests.request("GET", endpoint, params=params)
