@@ -77,6 +77,7 @@ def get_task_variables(user):
             else:
                 try:
                     current_task = json.loads(camundarest.get_external_task(definition_id, instance_id))[0]
+
                 except Exception as error:
                     return json.dumps({'Error': str(error)})
                 finally:
@@ -86,25 +87,33 @@ def get_task_variables(user):
                     external_topic_name = current_task['topicName']
                     external_worker_id = 'worker' + user
 
-            if task_assignee != None:           
+            if task_assignee != None:    
+
                 if task_assignee == user:               
                     if task_form_key != None:
                         try:
                             print("2")
                             task_variables = xmlparser.parse(definition_id, task_form_key)
                         except Exception as error:
-                            return json.dumps({'Error': str(error)})        
+                            return {'Error': str(error)}    
                         if variables != []:
+                            print("3")
                             if flag == False:
-                                try:              
+                                try:            
+                                    print("4")  
                                     mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, {'$set': {'flag': True}})
                                 except Exception as error:
                                     return json.dumps({'Error': str(error)})
-                                data = {
-                                    "databaseVariables": variables,
-                                    "serviceVariables": task_variables,
-                                }
-                                return data
+                                finally:
+                                    print("5")
+                                    print("variables: ", variables)
+                                    print("task_variables: ", task_variables)
+                                    data = {
+                                        "databaseVariables": variables,
+                                        "serviceVariables": task_variables,
+                                    }
+                                    print("data: ", data)
+                                    return data
                             else:                           
                                 return task_variables
                         else:

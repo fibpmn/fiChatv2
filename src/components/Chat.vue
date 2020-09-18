@@ -84,8 +84,7 @@ export default {
     },
   },
   mounted() {
-    if (this.$store.state.auth)
-      this.fetchRooms(), this.setFi(), this.getVariables();
+    if (this.$store.state.auth) this.fetchRooms(), this.setFi()
     else this.dialog = true;
   },
   destroyed() {
@@ -109,7 +108,7 @@ export default {
     async parseDbVariables() {
       var user = this.username;
       this.dbVariablesToParse = await Camunda.parseDatabaseVariables(user);
-      console.log("Parsirane varijable iz Monga: ", this.variablesFromCamunda);
+      console.log("Parsirane varijable iz Monga: ", this.dbVariablesToParse);
     },
     resetRooms() {
       this.loadingRooms = true;
@@ -453,6 +452,7 @@ export default {
     },
 
     async temaTask() {
+      await this.getVariables();
       if (this.variablesFromDb != "sent") {
         let content = "Bok! Student vas je odabrao kao mentora.";
         let message = {
