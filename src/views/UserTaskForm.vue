@@ -78,8 +78,7 @@ export default {
       });
       variables.Mentor.value = variables.Mentor.value.replace(/ /g, "");
       let username = this.username;
-      let id = await Camunda.getTaskIdForTaskCompletion(username);
-      await Camunda.completeTaskForm(id, variables, username);
+      await Camunda.completeTaskForm(username, variables);
       this.success = true;
       setTimeout(router.push({ name: "Chat" }), 4000);
     },
