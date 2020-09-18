@@ -12,6 +12,7 @@ def parse_db_data(user, variables):
     print("variables dbparser: ", variables)
     variable_names = []
     props_list = []
+    variables = list(filter(None, variables))
     for i in variables: #prodi kroz varijable
         variable_name = i.keys()       #uzmi nazive varijabli, pr. "NaslovRada"
         variable_props = i.values()       #uzmi svojstva varijable, pr. {"value": "blabla", "type": "String"}
