@@ -209,18 +209,6 @@ def get_selected_room(user):
     except Exception as error:
         return json.dumps({'Error': str(error)})
 
-# @app.route('/api/task/variables', methods=["POST"])
-# def set_flag(id):
-#     print("Pozvan je")
-#     try:
-#         flag_value = {'$set': {
-#                         'flag': True
-#         }}
-#         print("ID", id)
-#         mongo.db.chatRooms.update({"_id": id}, flag_value)
-#         return "Flag is set to True"
-#     except Exception as error:
-#         return json.dumps({'Error': str(error)})
 
 
 

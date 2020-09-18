@@ -14,7 +14,7 @@
     <div v-show="this.$store.state.auth">
     <v-list>
       <v-list-item-group>
-        <v-list-item class="pl-2">
+        <v-list-item disabled class="pl-2">
           <v-avatar size="40" color="blue lighten-2">
             <span class="white--text">{{initials}}</span>
           </v-avatar>
@@ -59,11 +59,11 @@
         </v-btn>
       </v-list-item-avatar>
       <v-list-item-content class="pt-0 pb-0">
-        <v-btn tile text color="white" class="pl-0" to="/">IDI DOMA</v-btn>
+        <v-btn tile text :retain-focus-on-click="false" color="white" class="pl-0" to="/">IDI DOMA</v-btn>
       </v-list-item-content>
     </v-list-item>
     <v-divider color="white"></v-divider>
-    <v-list-item class="white--text pl-2">
+    <v-list-item class="white--text pl-2" disabled>
       <v-list-item-avatar>
         <v-btn color="blue lighten-2" small fab depressed>
           <v-icon color="white">mdi-account-edit</v-icon>
@@ -154,6 +154,10 @@ export default {
 .v-list {
   padding: 0px !important;
 }
+.v-btn--active::before {
+  opacity: 0 !important;
+}
+
 // .v-navigation-drawer__content{
 //     box-shadow: 0px 2px #90CAF9 !important;
 // }

@@ -192,7 +192,7 @@ def send_task_variables(user):
         #query = list(mongo.db.chatRooms.find({"_id": selected_room, "initial": False}))
         mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, var_values)
 
-        #return camundarest.complete_user_task(task_id, instance_variables)
+        return camundarest.complete_user_task(task_id, instance_variables)
     else:
         instance_variables = None
         return camundarest.complete_user_task(task_id, instance_variables)
@@ -231,71 +231,37 @@ def get_mentors():
     temp = {"temp": ime_prezime}
     return temp
 
+#USED FOR VUE-GENERATOR, NOT TO BE USED IN CHAT
 @app.route('/api/<user>/task/form/complete', methods=['POST'])
 @cross_origin()
 def complete_task_form(user):
     data = request.get_json()
     variables = data['variables']
-    print("Variables: ", variables)
-    #user_oid = list(mongo.db.users.find({"username": user}))[0]['_id']
     selected_room = json.loads(dbroutes.get_selected_room(user))[0]
-    print("Selected_room: ", selected_room )
+    room_id = selected_room['_id']
     process_definition_id = selected_room['definitionId'] 
     process_instance_id = selected_room['processInstanceId']
-
     task_id = json.loads(camundarest.get_user_task(process_definition_id, process_instance_id))[0]['id']
-    print("Task_id: ", task_id)
-    mentor_username = data['variables']['Mentor']['value']
-    mentor_oid = ObjectId(mongo.db.users.find_one({"username": mentor_username})['_id'])
-    room_id = selected_room['_id']
-    query = mongo.db.chatRooms.find_one({"_id": ObjectId(room_id['$oid']), "initial": False})['_id']
-    values = {'$addToSet': {
-        "users": mentor_oid
-    }}
-    mongo.db.chatRooms.update_one({"_id": query}, values)
-    variables = data['variables']
-    var_values = {
-        '$addToSet': {
-            "variables": variables
+ 
+    try:
+        mentor_username = data['variables']['Mentor']['value']
+        mentor_oid = ObjectId(mongo.db.users.find_one({"username": mentor_username})['_id'])
+        query = mongo.db.chatRooms.find_one({"_id": ObjectId(room_id['$oid']), "initial": False})['_id']
+        
+        values = {'$addToSet': {
+            "users": mentor_oid
+        }}
+        mongo.db.chatRooms.update_one({"_id": query}, values)
+
+        var_values = {
+            '$addToSet': {
+                "variables": variables
+            }
         }
-    }
-    mongo.db.chatRooms.update_one({"_id": query}, var_values)
+        mongo.db.chatRooms.update_one({"_id": query}, var_values)
+    except Exception as error:
+        return json.dumps({"Error": str(error)})
+
     return camundarest.complete_user_task(task_id, variables)
 
-#GET TASK ID
-@app.route('/api/task/complete/<username>', methods=['GET'])
-@cross_origin()
-def get_task_id_for_task_completion(username):
-    user_object = mongo.db.users.find_one({"username": username})
-    selected_room = user_object['selectedRoom'] 
-    definition_id = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room)})['definitionId']
-    instance_id = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room)})['processInstanceId']
-    task = json.loads(camundarest.get_user_task(definition_id, instance_id))
-    task_id = task[0]['id']
-    return task_id
-
-#COMPLETE TASK
-@app.route('/api/task/complete/<id>', methods=["POST"])
-@cross_origin()
-def complete_user_task(id):
-    #current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
-    #task_id = current_task['id']
-    data = request.get_json()
-    user = data['username']
-    selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
-    mentor_username = data['variables']['Mentor']['value']
-    mentor_oid = ObjectId(mongo.db.users.find_one({"username": mentor_username})['_id'])
-    query = mongo.db.chatRooms.find_one({"_id": ObjectId(selected_room), "initial": False})['_id']
-    values = {'$addToSet': {
-        "users": mentor_oid
-    }}
-    mongo.db.chatRooms.update_one({"_id": query}, values)
-    instance_variables = data['variables']
-    var_values = {
-        '$addToSet': {
-            "variables": instance_variables
-        }
-    }
-    mongo.db.chatRooms.update_one({"_id": query}, var_values)
-    return camundarest.complete_user_task(id, instance_variables)
 
