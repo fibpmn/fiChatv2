@@ -49,7 +49,6 @@ def start_instance(key):
 @app.route('/api/<user>/task/variables', methods=["GET"])
 @cross_origin()
 def get_task_variables(user):
-    
     if json.loads(dbroutes.get_selected_room(user)) != []:
         selected_room = json.loads(dbroutes.get_selected_room(user))[0]
         print("Odabrana soba, moze doci do problema kada profesor ima dvije prijave zavrsnog: ", selected_room)
@@ -183,7 +182,8 @@ def send_task_variables(user):
     current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
     task_id = current_task['id']
     if data != []:
-        instance_variables = data['variables'] 
+        instance_variables = data['variables']
+        print("Camunda vars: ", instance_variables)
         var_values = {
             '$addToSet': {
                 "variables": instance_variables
@@ -191,7 +191,6 @@ def send_task_variables(user):
         }
         #query = list(mongo.db.chatRooms.find({"_id": selected_room, "initial": False}))
         mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, var_values)
-
         return camundarest.complete_user_task(task_id, instance_variables)
     else:
         instance_variables = None
