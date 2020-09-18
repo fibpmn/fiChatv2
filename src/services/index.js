@@ -57,12 +57,8 @@ let Camunda = {
         let data = Object.values(response.data) 
         return data;
     },
-    async getTaskIdForTaskCompletion(username) {
-        let response = await Service.get(`/api/task/complete/${username}`) 
-        return response.data
-    },
-    async completeTaskForm(id, variables, username) {
-        let response = await Service.post(`/api/task/complete/${id}`, { variables, username })
+    async completeTaskForm(user, variables) {
+        let response = await Service.post(`/api/${user}/task/form/complete`, {variables})
         return response.data
     },    
 }

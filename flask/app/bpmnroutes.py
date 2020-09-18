@@ -189,7 +189,7 @@ def send_task_variables(user):
                 "variables": instance_variables
             }
         }
-        query = list(mongo.db.chatRooms.find({"_id": selected_room, "initial": False}))
+        #query = list(mongo.db.chatRooms.find({"_id": selected_room, "initial": False}))
         mongo.db.chatRooms.update_one({"_id": ObjectId(room_id['$oid'])}, var_values)
 
         #return camundarest.complete_user_task(task_id, instance_variables)
@@ -212,60 +212,6 @@ def get_assignee(user):
         return json.dumps({'Error': str(error)})
     return assignee
 
-#DATABASE VARS INTO MESSAGES FORMATTER
-# @app.route('/api/<user>/task/variables/format', methods=['GET'])
-# @cross_origin()
-# def make_messages_out_of_database_variables(user):
-#     selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
-#     room = list(mongo.db.chatRooms.find({"_id": ObjectId(selected_room)}))[0]
-#     flag = room['flag']
-#     if flag != True:
-#         variable_names = []
-#         props_list = []
-#         for i in room['variables']: #prodi kroz varijable
-#             variable_name = i.keys()       #uzmi nazive varijabli, pr. "NaslovRada"
-#             variable_props = i.values()       #uzmi svojstva varijable, pr. {"value": "blabla", "type": "String"}
-#             for index in variable_name:    
-#                 element = ''
-#                 for k, l in enumerate(index):           #ovo sluzi za stavljanje razmaka u usernameu, k je proslo slovo, l je trenutno slovo
-#                     if k and l.isupper():
-#                         element += ' '
-#                     element += l
-#                 variable_names.append(element)              #dodaj element u polje varijabli imena 
-#             for index in variable_props:                        
-#                 properties = (list(index.values())[0])             
-#                 props_list.append(properties)               #dodaj element u polje varijabli svojstava
-
-#         #ovdje se konkateniraju imena i svojstva u jedan objekt koji se kasnije appenda u listu, 1 element liste = 1 message content
-#         object_concat = {}                                  
-#         list_of_content = []
-#         for index in range(len(variable_names)):
-#             object_concat = str(variable_names[index]) + ": " + str(props_list[index]) #ovo je content
-#             list_of_content.append(object_concat)
-
-#         messages = []
-#         temporary = {}
-#         sender_id = mongo.db.users.find_one({"username": "Fi"})["_id"]
-#         room_id = selected_room
-#         timestamp = datetime.datetime.now().isoformat() + "Z"
-
-#         for key in range(len(list_of_content)):
-#             temporary = {
-#                 "room_id": room_id,
-#                 "sender_id": sender_id,
-#                 "username": "Fi",
-#                 "content": list_of_content[key],
-#                 "timestamp": timestamp,
-#                 "seen": False
-#             }
-#             messages.append(temporary)
-#         return json.dumps(messages, default=json_util.default, sort_keys=False)
-#     else:
-#         return "Varijable su iz baze vec povucene"
-
-
-
-
 #FUNCTION USED IN VUE GENERATOR FOMR, NOT TO BE USED IN CHAT
 #GET MENTORS 
 @app.route('/api/mentors', methods=["GET"])
@@ -285,6 +231,37 @@ def get_mentors():
     temp = {"temp": ime_prezime}
     return temp
 
+@app.route('/api/<user>/task/form/complete', methods=['POST'])
+@cross_origin()
+def complete_task_form(user):
+    data = request.get_json()
+    variables = data['variables']
+    print("Variables: ", variables)
+    #user_oid = list(mongo.db.users.find({"username": user}))[0]['_id']
+    selected_room = json.loads(dbroutes.get_selected_room(user))[0]
+    print("Selected_room: ", selected_room )
+    process_definition_id = selected_room['definitionId'] 
+    process_instance_id = selected_room['processInstanceId']
+
+    task_id = json.loads(camundarest.get_user_task(process_definition_id, process_instance_id))[0]['id']
+    print("Task_id: ", task_id)
+    mentor_username = data['variables']['Mentor']['value']
+    mentor_oid = ObjectId(mongo.db.users.find_one({"username": mentor_username})['_id'])
+    room_id = selected_room['_id']
+    query = mongo.db.chatRooms.find_one({"_id": ObjectId(room_id['$oid']), "initial": False})['_id']
+    values = {'$addToSet': {
+        "users": mentor_oid
+    }}
+    mongo.db.chatRooms.update_one({"_id": query}, values)
+    variables = data['variables']
+    var_values = {
+        '$addToSet': {
+            "variables": variables
+        }
+    }
+    mongo.db.chatRooms.update_one({"_id": query}, var_values)
+    return camundarest.complete_user_task(task_id, variables)
+
 #GET TASK ID
 @app.route('/api/task/complete/<username>', methods=['GET'])
 @cross_origin()
@@ -301,6 +278,8 @@ def get_task_id_for_task_completion(username):
 @app.route('/api/task/complete/<id>', methods=["POST"])
 @cross_origin()
 def complete_user_task(id):
+    #current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
+    #task_id = current_task['id']
     data = request.get_json()
     user = data['username']
     selected_room = mongo.db.users.find_one({"username": user})['selectedRoom']
