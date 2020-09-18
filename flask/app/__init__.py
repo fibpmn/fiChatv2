@@ -7,5 +7,5 @@ cors = CORS()
 cors.init_app(app)
 app.config.from_object('config.Config')
 
-from app import dbroutes, bpmnroutes, camundarest, xmlparser, auth, externals
+from app import dbroutes, bpmnroutes, camundarest, xmlparser, auth, externals, dbparser
 

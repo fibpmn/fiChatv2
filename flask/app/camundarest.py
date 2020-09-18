@@ -9,7 +9,7 @@ def get_external_task(process_definition_id, process_instance_id):
     endpoint = url + '/external-task'
     params = {
         "processDefinitionId": process_definition_id,
-        "processInstanceId": process_instanceId,
+        "processInstanceId": process_instance_id,
     }
     try:
         req = requests.request("GET", endpoint, params=params)
@@ -161,7 +161,7 @@ def get_current_task_assignee(process_instance_id, business_key, process_definit
     params = {
         "processInstanceId": process_instance_id,
         "processInstanceBusinessKey": business_key,
-        "processDefinitionId": definition_id,
+        "processDefinitionId": process_definition_id,
         "unfinished": "true"
     }
     try:

@@ -6,6 +6,7 @@ from app import camundarest
 from app import xmlparser
 from app import dbroutes
 from app import externals
+from app import dbparser
 from bson import BSON, json_util, ObjectId
 from flask_cors import cross_origin
 import requests, json, time, re, datetime
@@ -51,17 +52,20 @@ def get_task_variables(user):
     
     if json.loads(dbroutes.get_selected_room(user)) != []:
         selected_room = json.loads(dbroutes.get_selected_room(user))[0]
+        print("Odabrana soba: ", selected_room)
         if selected_room['name'] == 'Recepcija' or selected_room == None:
             return "Nema pokrenutih procesa" 
         instance_id = selected_room['processInstanceId']
         definition_id = selected_room['definitionId']
         business_key = selected_room['businessKey']
-        variables = selected_room['variables']
+        variables = json.loads(dbparser.parse_db_data(user, selected_room['variables']))
+        print("Parsirane varijable: ", variables)
         flag = selected_room['flag']
         room_id = selected_room['_id']
 
         try:
             status = json.loads(camundarest.check_process_instance_status(instance_id, business_key, definition_id))[0]['state']
+            print("Status: ", status)
         except Exception as error:
             return json.dumps({'Error': str(error)})
 
@@ -69,7 +73,7 @@ def get_task_variables(user):
             if camundarest.get_user_task(definition_id, instance_id) != '[]':
                 try:
                     current_task = json.loads(camundarest.get_user_task(definition_id, instance_id))[0]
-                    print("1")
+                    print("Task je user task")
                 except Exception as error:
                     return json.dumps({'Error': str(error)})
                 finally:           
@@ -78,7 +82,7 @@ def get_task_variables(user):
             else:
                 try:
                     current_task = json.loads(camundarest.get_external_task(definition_id, instance_id))[0]
-
+                    print("Task je external task")
                 except Exception as error:
                     return json.dumps({'Error': str(error)})
                 finally:
@@ -89,15 +93,16 @@ def get_task_variables(user):
                     external_worker_id = 'worker' + user
 
             if task_assignee != None:    
-
-                if task_assignee == user:               
+                print("Task Assignee postoji")
+                if task_assignee == user:
+                    print("Task Assignee je user")               
                     if task_form_key != None:
                         try:
                             print("2")
                             task_variables = xmlparser.parse(definition_id, task_form_key)
                         except Exception as error:
                             return {'Error': str(error)}    
-                        if variables != []:
+                        if variables != '[]':
                             print("3")
                             if flag == False:
                                 try:            
@@ -107,13 +112,12 @@ def get_task_variables(user):
                                     return json.dumps({'Error': str(error)})
                                 finally:
                                     print("5")
-                                    print("variables: ", variables)
+                                    print("Varijable unutar flag == False: ", variables)
                                     print("task_variables: ", task_variables)
                                     data = {
                                         "databaseVariables": variables,
                                         "serviceVariables": task_variables,
                                     }
-                                    print("data: ", data)
                                     return data
                             else:                           
                                 return task_variables

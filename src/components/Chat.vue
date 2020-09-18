@@ -59,7 +59,7 @@ export default {
       processes: null,
       variablesFromDb: null,
       variablesFromCamunda: null,
-      dbVariablesToParse: null,
+      //dbVariablesToParse: null,
       awaitingResponseDb: null,
       awaitingResponseByDb: null,
     };
@@ -104,12 +104,13 @@ export default {
         "Dohvaćene varijable iz Camunde: ",
         this.variablesFromCamunda
       );
+      return this.variablesFromCamunda
     },
-    async parseDbVariables() {
-      var user = this.username;
-      this.dbVariablesToParse = await Camunda.parseDatabaseVariables(user);
-      console.log("Parsirane varijable iz Monga: ", this.dbVariablesToParse);
-    },
+    // async parseDbVariables() {
+    //   var user = this.username;
+    //   this.dbVariablesToParse = await Camunda.parseDatabaseVariables(user);
+    //   console.log("Parsirane varijable iz Monga: ", this.dbVariablesToParse);
+    // },
     resetRooms() {
       this.loadingRooms = true;
       this.rooms = [];
@@ -397,7 +398,7 @@ export default {
     async getFlagForRoom(rooms, roomId) {
       if(roomId != this.receptionRoom){
       let obj = rooms.filter((o) => o.roomId.$oid === roomId);
-      if (obj.flag == true) this.variablesFromDb = "sent";
+      if (obj[0].flag == true) this.variablesFromDb = "sent";
       else console.log("Nisu jos poslane varijable.");
       }
     },
@@ -452,7 +453,6 @@ export default {
     },
 
     async temaTask() {
-      await this.getVariables();
       if (this.variablesFromDb != "sent") {
         let content = "Bok! Student vas je odabrao kao mentora.";
         let message = {
@@ -474,16 +474,15 @@ export default {
           seen: false,
         };
         await Messages.addMessage(message);
-        await this.parseDbVariables();
-        const variables = this.dbVariablesToParse;
-        variables.pop();
+        const variables = await this.getVariables()
+        if (!(variables.databaseVariables === undefined || variables.databaseVariables.length == 0)){
+        variables.databaseVariables.pop();
         await Promise.all(
-          variables.map(async (message) => {
+          variables.databaseVariables.map(async (message) => {
             message.content = message.content.replace("False", "ne");
             message.content = message.content.replace("false", "ne");
             message.content = message.content.replace("True", "da");
             message.timestamp = new Date();
-            message.sender_id = message.sender_id.$oid;
             await Messages.addMessage(message);
           })
         );
@@ -499,6 +498,7 @@ export default {
           seen: false,
         };
         await Messages.addMessage(message);
+        
         let assignee = await this.getAssignee();
         let users = await Users.getAll();
         let obj = users.find((o) => o.username === assignee);
@@ -515,6 +515,7 @@ export default {
           "awaitingResponseBy",
           taskAssignee
         );
+        }
         this.refreshState(this.selectedRoom);
       }
     },

@@ -1,4 +1,4 @@
 {
-    "python.pythonPath": "flask\\.venv\\Scripts\\python.exe",
+    "python.pythonPath": "C:\\Python38\\python.exe",
     "git.ignoreLimitWarning": true
 }
