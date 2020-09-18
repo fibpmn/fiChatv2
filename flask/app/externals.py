@@ -6,6 +6,7 @@ from app import camundarest
 from bson import BSON, json_util, ObjectId
 from flask_pymongo import PyMongo
 import json
+import time
 
 mongo = PyMongo(app)
 
@@ -68,7 +69,13 @@ def unos_prijave(external_task_id, external_task_topic, external_task_worker, va
         "email": email,
         "variables": variables
     }
-    mongo.db.submitedApplications.insert_one(data)
+    print("External variables: ", variables)
+    mongo.db.submittedApplications.insert_one(data)
+    print("Worker: ", external_task_worker)
+    print("Topic Name: ", external_task_topic)
+    print("External task ID: ", external_task_id)
     camundarest.fetch_and_lock(external_task_worker, external_task_topic)
+    time.sleep(5)
     req = camundarest.complete_external_task(external_task_id, external_task_worker, variables)
+    print(req)
     return req #"Čestitamo! Uspješno ste prijavili završni rad"

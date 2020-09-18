@@ -9,6 +9,8 @@
       :messages="messages"
       :messagesLoaded="messagesLoaded"
       :styles="styles"
+			:menuActions="menuActions"
+      @menuActionHandler="menuActionHandler"
       @sendMessage="sendMessage"
       @fetchMessages="fetchMessages"
     />
@@ -36,6 +38,12 @@ export default {
     return {
       dialog: false,
       theme: "light",
+      menuActions: [
+        {
+          name: "deleteAllMessagesAndUserRoom",
+          title: "Reset",
+        },
+      ],
       selectedRoom: null,
       loadingRooms: false,
       rooms: [],
@@ -268,8 +276,9 @@ export default {
         iterator++;
       });
       this.messages = messageList;
-      if (!(messageList === undefined || messageList.length == 0))
+      if (!(messageList === undefined || messageList.length == 0)) {
         this.lastRoomMessage = messageList[messageList.length - 1].content;
+      }
       this.messagesLoaded = true;
 
       this.markMessagesSeen(room.roomId);
@@ -277,10 +286,12 @@ export default {
         this.refreshState(room.roomId);
       }, 9000);
       await this.refreshState(room.roomId);
-      if (this.selectedRoom == this.receptionRoom)
-        this.studentId = this.currentUserId; //ovako postavlja studentId jer jedino studenti imaju recepciju
-      if (this.$store.state.processRoomId1 == this.selectedRoom)
+      if (this.selectedRoom == this.receptionRoom) {
+        this.studentId = this.currentUserId;
+      } //ovako postavlja studentId jer jedino studenti imaju recepciju
+      if (this.$store.state.processRoomId1 == this.selectedRoom) {
         this.prikazPrijaveTeme();
+      }
     },
 
     async refreshState(roomId) {
@@ -411,47 +422,48 @@ export default {
         this.currentUserId != this.fiId &&
         this.selectedRoom == this.receptionRoom &&
         this.awaitingResponse
-      )
+      ) {
         await Rooms.updateRoomField(
           this.selectedRoom,
           "awaitingResponse",
           false
         );
-      if (this.lastMessage[0].content.includes("1")) {
-        await Camunda.StartProcessInstance(
-          this.processes[0].key,
-          this.processes[0].name,
-          this.$store.state.username
-        );
-        let rooms = await Rooms.getUserRooms(this.currentUserId);
-        this.$store.dispatch(
-          "setProcessRoomId1",
-          rooms[rooms.length - 1].roomId.$oid
-        );
-        await Users.updateUserField(
-          this.currentUserId,
-          "selectedRoom",
-          rooms[rooms.length - 1].roomId.$oid
-        );
-        router.push("UserTaskForm");
-      } else if (this.lastMessage[0].content.includes("2")) {
-        await Camunda.StartProcessInstance(
-          this.processes[1].key,
-          this.processes[1].name,
-          this.$store.state.username
-        );
-        let rooms = await Rooms.getUserRooms(this.currentUserId);
-        this.$store.dispatch(
-          "setProcessRoomId2",
-          rooms[rooms.length - 1].roomId.$oid
-        );
-        await Users.updateUserField(
-          this.currentUserId,
-          "selectedRoom",
-          rooms[rooms.length - 1].roomId.$oid
-        );
-        this.roomId = rooms[rooms.length - 1].roomId.$oid;
-        this.selectedRoom = rooms[rooms.length - 1].roomId.$oid;
+        if (this.lastMessage[0].content.includes("1")) {
+          await Camunda.StartProcessInstance(
+            this.processes[0].key,
+            this.processes[0].name,
+            this.$store.state.username
+          );
+          let rooms = await Rooms.getUserRooms(this.currentUserId);
+          this.$store.dispatch(
+            "setProcessRoomId1",
+            rooms[rooms.length - 1].roomId.$oid
+          );
+          await Users.updateUserField(
+            this.currentUserId,
+            "selectedRoom",
+            rooms[rooms.length - 1].roomId.$oid
+          );
+          router.push("UserTaskForm");
+        } else if (this.lastMessage[0].content.includes("2")) {
+          await Camunda.StartProcessInstance(
+            this.processes[1].key,
+            this.processes[1].name,
+            this.$store.state.username
+          );
+          let rooms = await Rooms.getUserRooms(this.currentUserId);
+          this.$store.dispatch(
+            "setProcessRoomId2",
+            rooms[rooms.length - 1].roomId.$oid
+          );
+          await Users.updateUserField(
+            this.currentUserId,
+            "selectedRoom",
+            rooms[rooms.length - 1].roomId.$oid
+          );
+          this.roomId = rooms[rooms.length - 1].roomId.$oid;
+          this.selectedRoom = rooms[rooms.length - 1].roomId.$oid;
+        }
       }
     },
 
@@ -519,7 +531,7 @@ export default {
             this.studentId = student.id.$oid;
           }
 
-          content = `${taskAssignee}, ukoliko ste zainteresirani, napišite 'Da'. Ukoliko niste, 'Ne'.`;
+          content = `${taskAssignee}, ukoliko ste zainteresirani, napišite *Da*. Ukoliko niste, *Ne*.`;
           message = {
             room_id: this.selectedRoom,
             sender_id: this.fiId,
@@ -621,7 +633,7 @@ export default {
             );
             //TODO: MAKNUTI MENTORA IZ SOBE! maknuti ga iz mongodb chatRooms.users[]
           } else {
-            let content = `Ukoliko prihvaćate temu, pošaljite 'Da', inače 'Ne'. `;
+            let content = `Ukoliko prihvaćate temu, pošaljite *Da*, inače *Ne*. `;
             let message = {
               room_id: this.selectedRoom,
               sender_id: this.fiId,
@@ -675,6 +687,15 @@ export default {
         await this.refreshState(this.selectedRoom);
       }
     },
+
+    
+		menuActionHandler({ action, roomId }) {
+			switch (action.name) {
+				case 'deleteAllMessagesAndUserRoom':
+					return this.deleteAllMessagesAndUserRoom(roomId)
+			}
+    },
+    
     async formalnaPrijava() {
       if (
         this.awaitingResponse &&
@@ -744,8 +765,20 @@ export default {
           this.formattedVariables.FormalniMentor = {
             value: this.lastMessage[0].content,
           };
-          await Camunda.sendTaskVariables(this.username, this.formattedVariables);
-          await this.getVariables()
+          await Rooms.updateRoomField(
+            this.selectedRoom,
+            "awaitingResponse",
+            false
+          );
+          await Rooms.updateRoomField(
+            this.selectedRoom,
+            "awaitingResponseBy",
+            ""
+          );
+          await Camunda.sendTaskVariables(
+            this.username,
+            this.formattedVariables
+          );
           let message = {
             room_id: this.selectedRoom,
             sender_id: this.fiId,
@@ -755,9 +788,21 @@ export default {
             seen: false,
           };
           await Messages.addMessage(message);
+          await this.getVariables();
         }
       }
     },
+    async deleteAllMessagesAndUserRoom(roomId){
+      if(roomId == this.receptionRoom) {
+      console.log("Recepcija se ne moze brisati.")
+      } else {
+      await Messages.deleteAllMessages()
+      console.log(roomId)
+      await Rooms.deleteRoom(roomId);
+      location.reload();
+      }
+    }
+
   },
 };
 </script>
