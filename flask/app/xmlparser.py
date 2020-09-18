@@ -45,5 +45,5 @@ def parse(process_definition_id, form_key):
         schema = {'fields' : fields}
         data = {'model' : model, 'schema': schema}
         #print("Data: ", data)
-        bigobj = json.dumps(data, ensure_ascii=False).encode('utf-8')
+        bigobj = json.dumps(data)#, ensure_ascii=False).encode('utf-8')
     return bigobj

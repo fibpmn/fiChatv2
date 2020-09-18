@@ -161,7 +161,8 @@ def get_current_task_assignee(process_instance_id, business_key, process_definit
     params = {
         "processInstanceId": process_instance_id,
         "processInstanceBusinessKey": business_key,
-        "processDefinitionId": process_definition_id,
+        "processDefinitionId": definition_id,
+        "unfinished": "true"
     }
     try:
         req = requests.request("GET", endpoint, params=params)
