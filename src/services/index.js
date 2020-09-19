@@ -83,6 +83,10 @@ let Rooms = {
             };
         });
     },
+    async deleteRoom(roomid) {
+        let response = await Service.delete(`/api/rooms/${roomid}`)
+        return response;
+    },
     async getUserRooms(userid) {
         let response = await Service.get(`/api/rooms/${userid}`)
         return response.data.map(doc => {
@@ -172,7 +176,10 @@ let Messages = {
             })
             return response;
     },
-
+    async deleteAllMessages() {
+        let response = await Service.delete('/api/messages')
+        return response;
+    },
     async updateMessageField(room, field, value) {
         let response = await Service.put('/api/messages', {
             room: room,

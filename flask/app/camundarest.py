@@ -95,16 +95,18 @@ def get_process_xml(process_definition_id):
 
 def complete_user_task(task_id, variables):
     endpoint = url + "/task/" + task_id + "/complete"
+    print("camundarest.variables: ", variables)
     body = {
         "variables": variables,
         "withVariablesInReturn": True
     }
     try:
         req = requests.request("POST", endpoint, json=body)
+        print(req)
         if req.status_code == 200:
             return req.text
         elif req.status_code == 204:
-            return req.text, req.status_code
+            return req.text
         elif req.status_code == 400:
             return req.text, req.status_code
         elif req.status_code == 500:

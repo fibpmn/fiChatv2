@@ -20,6 +20,16 @@ def getRooms():
     except Exception as e:
         return json.dumps({'error': str(e)})
 
+# izbrisi određenu sobu
+@app.route('/api/rooms/<room_id>', methods=['DELETE'])
+@cross_origin()
+def deleteRoom(room_id):
+    try:
+        mongo.db.chatRooms.remove({"_id": ObjectId(room_id)})
+        return "ok"
+    except Exception as e:
+        return json.dumps({'error': str(e)})
+
 # updejtaj field sobe
 @app.route('/api/rooms', methods=['PUT'])
 @cross_origin()
@@ -131,6 +141,17 @@ def addMessage():
         return "ok"
     except Exception as e:
         return json.dumps({'error': str(e)})
+
+# izbrisi kolekciju poruka
+@app.route('/api/messages', methods=['DELETE'])
+@cross_origin()
+def deleteAllMessages():
+    try:
+        mongo.db.messages.remove({})
+        return "ok"
+    except Exception as e:
+        return json.dumps({'error': str(e)})
+
 
 # updejtaj field poruke
 @app.route('/api/messages', methods=['PUT'])
