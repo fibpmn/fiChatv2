@@ -26,11 +26,11 @@ def fetch_and_lock(worker_id, topic_name):
     endpoint = url + "/external-task/fetchAndLock"
     body = {
         "workerId": worker_id,
-        "maxTasks": 1,
-        "asyncResponseTimeout": 5000,
+        "maxTasks": 2,
+        #"asyncResponseTimeout": 5000,
         "topics": [{
             "topicName": topic_name,
-            "lockDuration": 10000,
+            "lockDuration": 1000,
         }]
     }
     try:
