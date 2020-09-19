@@ -9,7 +9,7 @@
       :messages="messages"
       :messagesLoaded="messagesLoaded"
       :styles="styles"
-			:menuActions="menuActions"
+      :menuActions="menuActions"
       @menuActionHandler="menuActionHandler"
       @sendMessage="sendMessage"
       @fetchMessages="fetchMessages"
@@ -63,6 +63,7 @@ export default {
       studentId: null,
       student: null,
       receptionRoom: null,
+      messagesByBotReception: null,
       messagesByBot: null,
       lastRoomMessage: null,
       interval: null,
@@ -72,6 +73,7 @@ export default {
       awaitingResponseDb: null,
       awaitingResponseByDb: null,
       stepsCounter: 1,
+      stepsCounter2: 1,
       formattedVariables: null,
     };
   },
@@ -212,7 +214,7 @@ export default {
     async introMessage() {
       if (
         this.selectedRoom == this.receptionRoom &&
-        this.messagesByBot == false
+        this.messagesByBotReception == false
       ) {
         this.processes = await Camunda.getProcesses();
         let iterator = 1;
@@ -292,6 +294,9 @@ export default {
       if (this.$store.state.processRoomId1 == this.selectedRoom) {
         this.prikazPrijaveTeme();
       }
+      if (this.$store.state.processRoomId2 == this.selectedRoom) {
+        this.startPrijavaDiplomskog(messages);
+      }
     },
 
     async refreshState(roomId) {
@@ -312,6 +317,10 @@ export default {
         };
         iterator++;
       });
+      let checkBot = messages.filter((o) => o.sender_id.$oid === this.fiId);
+      if (checkBot === undefined || checkBot.length == 0)
+        this.messagesByBot = false;
+      else this.messagesByBot = true;
       this.messages = messageList;
       this.messagesLoaded = true;
       this.getFlagForRoom(rooms, this.selectedRoom);
@@ -331,7 +340,9 @@ export default {
       await this.receptionProcessStart();
       await this.odlukaOTemi();
       await this.triggerFi();
-      this.formalnaPrijava();
+      await this.formalnaPrijava();
+      if (this.$store.state.processRoomId2 == this.selectedRoom)
+        await this.startPrijavaDiplomskog();
     },
 
     formatLastMessage(message) {
@@ -386,8 +397,8 @@ export default {
             o.room_id.$oid === obj[0].roomId.$oid && o.sender_id.$oid === fiId
         );
         if (msgobj === undefined || msgobj.length == 0)
-          this.messagesByBot = false;
-        else this.messagesByBot = true;
+          this.messagesByBotReception = false;
+        else this.messagesByBotReception = true;
       } else {
         this.receptionRoom = "None";
       }
@@ -413,7 +424,6 @@ export default {
       if (roomId != this.receptionRoom) {
         let obj = rooms.filter((o) => o.roomId.$oid === roomId);
         if (obj[0].flag == true) this.temaVariablesFromDb = "sent";
-        else console.log("Varijable nisu još dohvaćene s baze.");
       }
     },
 
@@ -461,8 +471,9 @@ export default {
             "selectedRoom",
             rooms[rooms.length - 1].roomId.$oid
           );
-          this.roomId = rooms[rooms.length - 1].roomId.$oid;
-          this.selectedRoom = rooms[rooms.length - 1].roomId.$oid;
+          // this.roomId = rooms[rooms.length - 1].roomId.$oid;
+          // this.selectedRoom = rooms[rooms.length - 1].roomId.$oid;
+          this.fetchRooms();
         }
       }
     },
@@ -649,53 +660,54 @@ export default {
     },
 
     async triggerFi() {
-      if (
-        this.lastMessage[0].content.includes("@Fi") &&
-        this.$store.state.processRoomId1 == this.selectedRoom
-      ) {
-        await Camunda.sendTaskVariables(this.username, null);
-        let content = `Super. Krećemo s formalnom prijavom.`;
-        let message = {
-          room_id: this.selectedRoom,
-          sender_id: this.fiId,
-          username: "Fi",
-          content,
-          timestamp: new Date(),
-          seen: false,
-        };
-        await Messages.addMessage(message);
-        content = `${this.student}, koji je naslov rada?`;
-        message = {
-          room_id: this.selectedRoom,
-          sender_id: this.fiId,
-          username: "Fi",
-          content,
-          timestamp: new Date(),
-          seen: false,
-        };
-        await Messages.addMessage(message);
-        await Rooms.updateRoomField(
-          this.selectedRoom,
-          "awaitingResponse",
-          true
-        );
-        await Rooms.updateRoomField(
-          this.selectedRoom,
-          "awaitingResponseBy",
-          this.studentId
-        );
-        await this.refreshState(this.selectedRoom);
+      if (this.lastMessage != "None") {
+        if (
+          this.lastMessage[0].content.includes("@Fi") &&
+          this.$store.state.processRoomId1 == this.selectedRoom
+        ) {
+          await Camunda.sendTaskVariables(this.username, null);
+          let content = `Super. Krećemo s formalnom prijavom.`;
+          let message = {
+            room_id: this.selectedRoom,
+            sender_id: this.fiId,
+            username: "Fi",
+            content,
+            timestamp: new Date(),
+            seen: false,
+          };
+          await Messages.addMessage(message);
+          content = `${this.student}, koji je naslov rada?`;
+          message = {
+            room_id: this.selectedRoom,
+            sender_id: this.fiId,
+            username: "Fi",
+            content,
+            timestamp: new Date(),
+            seen: false,
+          };
+          await Messages.addMessage(message);
+          await Rooms.updateRoomField(
+            this.selectedRoom,
+            "awaitingResponse",
+            true
+          );
+          await Rooms.updateRoomField(
+            this.selectedRoom,
+            "awaitingResponseBy",
+            this.studentId
+          );
+          await this.refreshState(this.selectedRoom);
+        }
       }
     },
 
-    
-		menuActionHandler({ action, roomId }) {
-			switch (action.name) {
-				case 'deleteAllMessagesAndUserRoom':
-					return this.deleteAllMessagesAndUserRoom(roomId)
-			}
+    menuActionHandler({ action, roomId }) {
+      switch (action.name) {
+        case "deleteAllMessagesAndUserRoom":
+          return this.deleteAllMessagesAndUserRoom(roomId);
+      }
     },
-    
+
     async formalnaPrijava() {
       if (
         this.awaitingResponse &&
@@ -792,17 +804,117 @@ export default {
         }
       }
     },
-    async deleteAllMessagesAndUserRoom(roomId){
-      if(roomId == this.receptionRoom) {
-      console.log("Recepcija se ne moze brisati.")
+    async deleteAllMessagesAndUserRoom(roomId) {
+      if (roomId == this.receptionRoom) {
+        console.log("Recepcija se ne moze brisati.");
       } else {
-      await Messages.deleteAllMessages()
-      console.log(roomId)
-      await Rooms.deleteRoom(roomId);
-      location.reload();
+        await Messages.deleteAllMessages();
+        console.log(roomId);
+        await Rooms.deleteRoom(roomId);
+        location.reload();
       }
-    }
-
+    },
+    async startPrijavaDiplomskog() {
+      if (this.messagesByBot == false) {
+        let message = {
+          room_id: this.selectedRoom,
+          sender_id: this.fiId,
+          username: "Fi",
+          content: "Pozdrav! Vidim da želiš prijaviti diplomski.",
+          timestamp: new Date(),
+          seen: false,
+        };
+        await Messages.addMessage(message);
+        message = {
+          room_id: this.selectedRoom,
+          sender_id: this.fiId,
+          username: "Fi",
+          content:
+            "Za početak, potrebna mi je potvrda o plaćanju troška upisa.",
+          timestamp: new Date(),
+          seen: false,
+        };
+        await Messages.addMessage(message);
+        await Rooms.updateRoomField(
+          this.selectedRoom,
+          "awaitingResponse",
+          true
+        );
+        await Rooms.updateRoomField(
+          this.selectedRoom,
+          "awaitingResponseBy",
+          this.currentUserId
+        );
+      }
+      if (
+        this.awaitingResponse &&
+        this.awaitingResponseBy == this.currentUserId
+      ) {
+        this.getVariables();
+        if (this.stepsCounter2 == 1) {
+          if (this.lastMessage[0].content.includes(".pdf")) {
+            let variables = { upis: { value: this.lastMessage[0].content } };
+            await Camunda.sendTaskVariables(this.username, variables);
+          }
+          let message = {
+            room_id: this.selectedRoom,
+            sender_id: this.fiId,
+            username: "Fi",
+            content:
+              "Da li si *redovni*, *izvanredni*, *student ponavljac* ili *strani student*?",
+            timestamp: new Date(),
+            seen: false,
+          };
+          await Messages.addMessage(message);
+          this.stepsCounter2++;
+        } else if (this.stepsCounter2 == 2) {
+          if (this.lastMessage[0].content.includes("redovni")) {
+            let variables = {
+              izvanredni_student: { value: "false" },
+              redovni_student: { value: "true" },
+              strani_student: { value: "false" },
+              student_ponavljac: { value: "false" },
+            };
+            await Camunda.sendTaskVariables(this.username, variables);
+            let message = {
+              room_id: this.selectedRoom,
+              sender_id: this.fiId,
+              username: "Fi",
+              content:
+                "Čestitam! Tvoja prijava je uspješno zaprimljena. Ured za studente će pregledati tvoju prijavu.",
+              timestamp: new Date(),
+              seen: false,
+            };
+            await Messages.addMessage(message);
+          } else if (this.lastMessage[0].content.includes("izvanredni")) {
+            let variables = {
+              izvanredni_student: { value: "true" },
+              redovni_student: { value: "false" },
+              strani_student: { value: "false" },
+              student_ponavljac: { value: "false" },
+            };
+            await Camunda.sendTaskVariables(this.username, variables);
+          } else if (this.lastMessage[0].content.includes("strani")) {
+            let variables = {
+              izvanredni_student: { value: "false" },
+              redovni_student: { value: "false" },
+              strani_student: { value: "true" },
+              student_ponavljac: { value: "false" },
+            };
+            await Camunda.sendTaskVariables(this.username, variables);
+          } else if (this.lastMessage[0].content.includes("ponavljac")) {
+            let variables = {
+              izvanredni_student: { value: "false" },
+              redovni_student: { value: "false" },
+              strani_student: { value: "false" },
+              student_ponavljac: { value: "true" },
+            };
+            await Camunda.sendTaskVariables(this.username, variables);
+          }
+          this.stepsCounter2++;
+        }
+      }
+    },
   },
 };
 </script>
