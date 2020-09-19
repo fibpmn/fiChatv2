@@ -470,8 +470,6 @@ export default {
             "selectedRoom",
             rooms[rooms.length - 1].roomId.$oid
           );
-          // this.roomId = rooms[rooms.length - 1].roomId.$oid;
-          // this.selectedRoom = rooms[rooms.length - 1].roomId.$oid;
           this.fetchRooms();
         }
       }
@@ -510,9 +508,17 @@ export default {
           };
           await Messages.addMessage(message);
 
-          variables.databaseVariables.pop();
+          var wellOrdered = [];
+          variables.databaseVariables.map((variable) => {
+            if (variable.content.includes("Naslov")) wellOrdered[0] = variable;
+            if (variable.content.includes("Sazetak")) wellOrdered[1] = variable;
+            if (variable.content.includes("Dispozicija")) wellOrdered[2] = variable;
+            if (variable.content.includes("Popis")) wellOrdered[3] = variable;
+            if (variable.content.includes("Ispunjeni")) wellOrdered[4] = variable;
+          }),
+          
           await Promise.all(
-            variables.databaseVariables.map(async (message) => {
+            wellOrdered.map(async (message) => {
               message.content = message.content.replace("False", "ne");
               message.content = message.content.replace("false", "ne");
               message.content = message.content.replace("True", "da");
@@ -727,7 +733,7 @@ export default {
             room_id: this.selectedRoom,
             sender_id: this.fiId,
             username: "Fi",
-            content: "Sazetak problema?",
+            content: "Sažetak problema?",
             timestamp: new Date(),
             seen: false,
           };
@@ -807,7 +813,7 @@ export default {
     },
     async deleteAllMessagesAndUserRoom(roomId) {
       if (roomId == this.receptionRoom) {
-        console.log("Recepcija se ne moze brisati.");
+        console.log("Recepcija se ne može brisati.");
       } else {
         await Messages.deleteAllMessages();
         await Rooms.deleteRoom(roomId);
@@ -862,7 +868,7 @@ export default {
             sender_id: this.fiId,
             username: "Fi",
             content:
-              "Jesi li *redovni*, *izvanredni*, *student ponavljac* ili *strani student*?",
+              "Jesi li *redovni*, *izvanredni*, *student ponavljač* ili *strani student*?",
             timestamp: new Date(),
             seen: false,
           };
@@ -914,7 +920,7 @@ export default {
                 student_ponavljac: { value: "false" },
               };
               await Camunda.sendTaskVariables(this.username, variables);
-            } else if (this.lastMessage[0].content.includes("ponavljac")) {
+            } else if (this.lastMessage[0].content.includes("ponavljač")) {
               let variables = {
                 izvanredni_student: { value: "false" },
                 redovni_student: { value: "false" },
