@@ -45,7 +45,7 @@ def upisi_studenta(external_task_id, external_task_topic, external_task_worker, 
         "email": email,
         "variables": variables
     }
-    mongo.db.submitedApplications.insert_one(data)
+    mongo.db.submittedApplications.insert_one(data)
     camundarest.fetch_and_lock(external_task_worker, external_task_topic)
     req = camundarest.complete_external_task(external_task_id, external_task_worker, variables)
     return req
@@ -68,7 +68,7 @@ def unos_prijave(external_task_id, external_task_topic, external_task_worker, va
         "email": email,
         "variables": variables
     }
-    mongo.db.submitedApplications.insert_one(data)
+    mongo.db.submittedApplications.insert_one(data)
     camundarest.fetch_and_lock(external_task_worker, external_task_topic)
     req = camundarest.complete_external_task(external_task_id, external_task_worker, variables)
     return req #"Čestitamo! Uspješno ste prijavili završni rad"
