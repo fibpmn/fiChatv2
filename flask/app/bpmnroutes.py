@@ -154,7 +154,7 @@ def get_task_variables(user):
                 else:
                     print("Trentuni task radi stroj, tj. task je external")
                     if external_topic_name == 'izracunaj_skolarinu':
-                        response = externals.izracunaj_skolarinu(external_task_id, external_topic_name, external_worker_id, variables)
+                        response = externals.izracunaj_skolarinu(external_task_id, external_topic_name, external_worker_id, variables, user)
                     elif external_topic_name == 'upisi_studenta':
                         response = externals.upisi_studenta(external_task_id, external_topic_name, external_worker_id, variables, user)
                     elif external_topic_name == 'unos_prijave':

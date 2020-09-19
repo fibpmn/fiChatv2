@@ -10,9 +10,11 @@ import json
 mongo = PyMongo(app)
 
 #for external tasks, mock some services
-def izracunaj_skolarinu(external_task_id, external_task_topic, external_task_worker, variables):
-    
-    #TREBA REWORKATI
+def izracunaj_skolarinu(external_task_id, external_task_topic, external_task_worker, variables, user):
+    user_exists = list(mongo.db.users.find({"username": user}))[0]
+    selected_room = ObjectId(user_exists['selectedRoom'])
+    room_id = list(mongo.db.chatRooms.find({"_id": selected_room}))[0]
+    print("User Exists: ", user_exists)
     status = variables['value']
     iznos_skolarine = 0
     if status == 'izvanredni':
@@ -24,6 +26,12 @@ def izracunaj_skolarinu(external_task_id, external_task_topic, external_task_wor
     variables = {"Skolarina": {"value": iznos_skolarine,
                                "type": "long"
     }}
+    var_values = {
+    '$addToSet': {
+        "variables": variables
+        }
+    }
+    mongo.db.chatRooms.insert_one({"_id": ObjectId(room_id)}, var_values)
     resp = camundarest.complete_external_task(external_task_id, external_task_worker, variables)        
     return resp
 
