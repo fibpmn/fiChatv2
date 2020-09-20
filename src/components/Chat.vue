@@ -517,11 +517,9 @@ export default {
           variables.databaseVariables.map((variable) => {
             if (variable.content.includes("Naslov")) wellOrdered[0] = variable;
             if (variable.content.includes("Sazetak")) wellOrdered[1] = variable;
-            if (variable.content.includes("Dispozicija"))
-              wellOrdered[2] = variable;
+            if (variable.content.includes("Dispozicija")) wellOrdered[2] = variable;
             if (variable.content.includes("Popis")) wellOrdered[3] = variable;
-            if (variable.content.includes("Ispunjeni"))
-              wellOrdered[4] = variable;
+            if (variable.content.includes("Ispunjeni")) wellOrdered[4] = variable;
           }),
             await Promise.all(
               wellOrdered.map(async (message) => {
