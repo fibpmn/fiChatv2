@@ -1,6 +1,13 @@
-## Web aplikacija Fibot
-
+### Svuečilište Jurja Dobrile u Puli
+### Fakultet informatike u Puli
+#### Web aplikacija Fibot/Završni rad
+#
+##### Autori: Bernobić Nikki, Starčić Toni
+##### Mentor: doc. dr. sc. Darko Etinger
+##### Komentor: doc. dr. sc Nikola Tanković
+#
 #### Koraci za pokretanje aplikacije
+#
 ###### 1. Preuzmite projekt i raspakirajte ga.
 #
 ###### 2. Posebno raspakirajte "camunda-bpm-tomcat-7.13.0" koji sadrži dijagrame procesa i definirane profile.
