@@ -93,7 +93,6 @@ def get_process_xml(process_definition_id):
 
 def complete_user_task(task_id, variables):
     endpoint = url + "/task/" + task_id + "/complete"
-    print("camundarest.variables: ", variables)
     body = {
         "variables": variables,
         "withVariablesInReturn": True
