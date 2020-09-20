@@ -110,6 +110,7 @@ export default {
       let response = await Camunda.getCurrentTaskAssignee(username);
       return response;
     },
+    
     async getVariables() {
       var username = this.username;
       this.variablesFromCamunda = await Camunda.getTaskVariables(username);
@@ -119,15 +120,18 @@ export default {
       );
       return this.variablesFromCamunda;
     },
+    
     resetRooms() {
       this.loadingRooms = true;
       this.rooms = [];
       this.resetMessages();
     },
+    
     resetMessages() {
       this.messages = [];
       this.messagesLoaded = false;
     },
+    
     async fetchRooms() {
       this.resetRooms();
       const rooms = await Rooms.getUserRooms(this.currentUserId);
@@ -210,45 +214,6 @@ export default {
       this.loadingRooms = false;
     },
 
-    async introMessage() {
-      if (
-        this.selectedRoom == this.receptionRoom &&
-        this.messagesByBotReception == false
-      ) {
-        this.processes = await Camunda.getProcesses();
-        let iterator = 1;
-        let content = "Hej! Dobrodošao. Izaberi proces:";
-        const message = {
-          room_id: this.receptionRoom,
-          sender_id: this.fiId,
-          username: "Fi",
-          content,
-          timestamp: new Date(),
-          seen: false,
-        };
-        await Messages.addMessage(message);
-
-        for (const process of this.processes) {
-          const message1 = {
-            room_id: this.receptionRoom,
-            sender_id: this.fiId,
-            username: "Fi",
-            content: iterator + ". " + process.name,
-            timestamp: new Date(),
-            seen: false,
-          };
-          await Messages.addMessage(message1);
-
-          iterator++;
-        }
-        await Rooms.updateRoomField(
-          this.selectedRoom,
-          "awaitingResponse",
-          true
-        );
-      }
-    },
-
     async fetchMessages({ room, options = {} }) {
       if (options.reset) this.resetMessages();
       clearInterval(this.interval);
@@ -294,7 +259,7 @@ export default {
         this.prikazPrijaveTeme();
       }
       if (this.$store.state.processRoomId2 == this.selectedRoom) {
-        this.startPrijavaDiplomskog(messages);
+        this.startPrijavaDiplomskog();
       }
     },
 
@@ -344,6 +309,45 @@ export default {
         await this.startPrijavaDiplomskog();
     },
 
+    async introMessage() {
+      if (
+        this.selectedRoom == this.receptionRoom &&
+        this.messagesByBotReception == false
+      ) {
+        this.processes = await Camunda.getProcesses();
+        let iterator = 1;
+        let content = "Hej! Dobrodošao. Izaberi proces:";
+        const message = {
+          room_id: this.receptionRoom,
+          sender_id: this.fiId,
+          username: "Fi",
+          content,
+          timestamp: new Date(),
+          seen: false,
+        };
+        await Messages.addMessage(message);
+
+        for (const process of this.processes) {
+          const message1 = {
+            room_id: this.receptionRoom,
+            sender_id: this.fiId,
+            username: "Fi",
+            content: iterator + ". " + process.name,
+            timestamp: new Date(),
+            seen: false,
+          };
+          await Messages.addMessage(message1);
+
+          iterator++;
+        }
+        await Rooms.updateRoomField(
+          this.selectedRoom,
+          "awaitingResponse",
+          true
+        );
+      }
+    },
+
     formatLastMessage(message) {
       if (!message.timestamp) return;
       const date = new Date(message.timestamp);
@@ -365,6 +369,7 @@ export default {
           (!message.seen || !message.seen[this.currentUserId]),
       };
     },
+    
     async getLastMessage(room) {
       //za settanje propertija sobe
       const LastRoomMessage = await Messages.getLastRoomMessage(room);
@@ -512,20 +517,21 @@ export default {
           variables.databaseVariables.map((variable) => {
             if (variable.content.includes("Naslov")) wellOrdered[0] = variable;
             if (variable.content.includes("Sazetak")) wellOrdered[1] = variable;
-            if (variable.content.includes("Dispozicija")) wellOrdered[2] = variable;
+            if (variable.content.includes("Dispozicija"))
+              wellOrdered[2] = variable;
             if (variable.content.includes("Popis")) wellOrdered[3] = variable;
-            if (variable.content.includes("Ispunjeni")) wellOrdered[4] = variable;
+            if (variable.content.includes("Ispunjeni"))
+              wellOrdered[4] = variable;
           }),
-          
-          await Promise.all(
-            wellOrdered.map(async (message) => {
-              message.content = message.content.replace("False", "ne");
-              message.content = message.content.replace("false", "ne");
-              message.content = message.content.replace("True", "da");
-              message.timestamp = new Date();
-              await Messages.addMessage(message);
-            })
-          );
+            await Promise.all(
+              wellOrdered.map(async (message) => {
+                message.content = message.content.replace("False", "ne");
+                message.content = message.content.replace("false", "ne");
+                message.content = message.content.replace("True", "da");
+                message.timestamp = new Date();
+                await Messages.addMessage(message);
+              })
+            );
 
           this.temaVariablesFromDb = "sent";
 
@@ -811,6 +817,7 @@ export default {
         }
       }
     },
+    
     async deleteAllMessagesAndUserRoom(roomId) {
       if (roomId == this.receptionRoom) {
         console.log("Recepcija se ne može brisati.");
@@ -820,6 +827,7 @@ export default {
         location.reload();
       }
     },
+    
     async startPrijavaDiplomskog() {
       if (this.messagesByBot == false) {
         let message = {
