@@ -3,6 +3,7 @@
     <chat-window
       height="calc(100vh - 90px)"
       :theme="theme"
+      :showNewMessagesDivider="showNewMessagesDivider"
       :currentUserId="currentUserId"
       :rooms="rooms"
       :loadingRooms="loadingRooms"
@@ -57,6 +58,7 @@ export default {
         },
       },
       messagesLoaded: false,
+      showNewMessagesDivider: false,
       currentUserId: this.$store.state.id,
       username: this.$store.state.username,
       fiId: null,
@@ -110,7 +112,7 @@ export default {
       let response = await Camunda.getCurrentTaskAssignee(username);
       return response;
     },
-    
+
     async getVariables() {
       var username = this.username;
       this.variablesFromCamunda = await Camunda.getTaskVariables(username);
@@ -120,18 +122,18 @@ export default {
       );
       return this.variablesFromCamunda;
     },
-    
+
     resetRooms() {
       this.loadingRooms = true;
       this.rooms = [];
       this.resetMessages();
     },
-    
+
     resetMessages() {
       this.messages = [];
       this.messagesLoaded = false;
     },
-    
+
     async fetchRooms() {
       this.resetRooms();
       const rooms = await Rooms.getUserRooms(this.currentUserId);
@@ -254,7 +256,7 @@ export default {
       await this.refreshState(room.roomId);
       if (this.selectedRoom == this.receptionRoom) {
         this.studentId = this.currentUserId;
-      } //ovako postavlja studentId jer jedino studenti imaju recepciju
+      }
       if (this.$store.state.processRoomId1 == this.selectedRoom) {
         this.prikazPrijaveTeme();
       }
@@ -264,14 +266,14 @@ export default {
     },
 
     async refreshState(roomId) {
-      let rooms = await Rooms.getUserRooms(this.currentUserId); //updating awaitingresponse and awaitingresponseby computed
+      let rooms = await Rooms.getUserRooms(this.currentUserId); //updejtanje awaitingresponse i awaitingresponseby computed
       let filtered = rooms.filter((o) => o.roomId.$oid === roomId);
       this.awaitingResponseDb = filtered[0].awaitingResponse;
       this.awaitingResponseByDb = filtered[0].awaitingResponseBy;
 
       const messageList = [];
       let iterator = 0;
-      let messages = await Messages.getRoomMessages(roomId); //updating lastmessage computed
+      let messages = await Messages.getRoomMessages(roomId); //updejtanje lastmessage computed
       messages.map((message) => {
         messageList[iterator] = {
           _id: message.id.$oid,
@@ -355,7 +357,7 @@ export default {
         ? "HH:mm"
         : "DD/MM/YY";
       let timestamp = parseTimestamp(message.timestamp, timestampFormat);
-      if (timestampFormat === "HH:mm") timestamp = `Today, ${timestamp}`;
+      if (timestampFormat === "HH:mm") timestamp = `Danas, ${timestamp}`;
       let content = message.content;
       return {
         content,
@@ -369,7 +371,7 @@ export default {
           (!message.seen || !message.seen[this.currentUserId]),
       };
     },
-    
+
     async getLastMessage(room) {
       //za settanje propertija sobe
       const LastRoomMessage = await Messages.getLastRoomMessage(room);
@@ -442,7 +444,11 @@ export default {
           "awaitingResponse",
           false
         );
-        if (this.lastMessage[0].content.includes("1")) {
+        if (
+          this.lastMessage[0].content.includes("1") ||
+          this.lastMessage[0].content.toLowerCase().includes("prijava") ||
+          this.lastMessage[0].content.toLowerCase().includes("zavrsnog")
+        ) {
           await Camunda.StartProcessInstance(
             this.processes[0].key,
             this.processes[0].name,
@@ -459,7 +465,11 @@ export default {
             rooms[rooms.length - 1].roomId.$oid
           );
           router.push("UserTaskForm");
-        } else if (this.lastMessage[0].content.includes("2")) {
+        } else if (
+          this.lastMessage[0].content.includes("2") ||
+          this.lastMessage[0].content.toLowerCase().includes("upis") ||
+          this.lastMessage[0].content.toLowerCase().includes("diplomski")
+        ) {
           await Camunda.StartProcessInstance(
             this.processes[1].key,
             this.processes[1].name,
@@ -517,9 +527,11 @@ export default {
           variables.databaseVariables.map((variable) => {
             if (variable.content.includes("Naslov")) wellOrdered[0] = variable;
             if (variable.content.includes("Sazetak")) wellOrdered[1] = variable;
-            if (variable.content.includes("Dispozicija")) wellOrdered[2] = variable;
+            if (variable.content.includes("Dispozicija"))
+              wellOrdered[2] = variable;
             if (variable.content.includes("Popis")) wellOrdered[3] = variable;
-            if (variable.content.includes("Ispunjeni")) wellOrdered[4] = variable;
+            if (variable.content.includes("Ispunjeni"))
+              wellOrdered[4] = variable;
           }),
             await Promise.all(
               wellOrdered.map(async (message) => {
@@ -595,10 +607,7 @@ export default {
             ) &&
             this.$store.state.processRoomId1 == this.selectedRoom
           ) {
-            if (
-              this.lastMessage[0].content.includes("Da") ||
-              this.lastMessage[0].content.includes("da")
-            ) {
+            if (this.lastMessage[0].content.toLowerCase().includes("da")) {
               let variables = { odluka: { value: "da" } };
               await Camunda.sendTaskVariables(this.username, variables);
 
@@ -623,8 +632,7 @@ export default {
                 ""
               );
             } else if (
-              this.lastMessage[0].content.includes("Ne") ||
-              this.lastMessage[0].content.includes("ne")
+              this.lastMessage[0].content.toLowerCase().includes("ne")
             ) {
               let variables = { odluka: { value: "ne" } };
               await Camunda.sendTaskVariables(this.username, variables);
@@ -673,7 +681,7 @@ export default {
     async triggerFi() {
       if (this.lastMessage != "None") {
         if (
-          this.lastMessage[0].content.includes("@Fi") &&
+          this.lastMessage[0].content.toLowerCase().includes("@fi") &&
           this.$store.state.processRoomId1 == this.selectedRoom
         ) {
           await Camunda.sendTaskVariables(this.username, null);
@@ -708,6 +716,20 @@ export default {
             this.studentId
           );
           await this.refreshState(this.selectedRoom);
+        }
+        if (
+          this.lastMessage[0].content.toLowerCase().includes("@fi") &&
+          this.receptionRoom == this.selectedRoom
+        ) {
+          let message = {
+            room_id: this.selectedRoom,
+            sender_id: this.fiId,
+            username: "Fi",
+            content: "Mogu li ti kako pomoći?",
+            timestamp: new Date(),
+            seen: false,
+          };
+          await Messages.addMessage(message);
         }
       }
     },
@@ -815,7 +837,7 @@ export default {
         }
       }
     },
-    
+
     async deleteAllMessagesAndUserRoom(roomId) {
       if (roomId == this.receptionRoom) {
         console.log("Recepcija se ne može brisati.");
@@ -825,7 +847,7 @@ export default {
         location.reload();
       }
     },
-    
+
     async startPrijavaDiplomskog() {
       if (this.messagesByBot == false) {
         let message = {
@@ -842,7 +864,7 @@ export default {
           sender_id: this.fiId,
           username: "Fi",
           content:
-            "Za početak, potrebna mi je potvrda o plaćanju troška upisa.",
+            "Za početak, potrebna mi je potvrda o plaćanju troška upisa u pdf formatu.",
           timestamp: new Date(),
           seen: false,
         };
@@ -941,7 +963,7 @@ export default {
               sender_id: this.fiId,
               username: "Fi",
               content:
-                "Ok, potrebna mi je potvrda o plaćenoj školarini. Možeš li mi je poslati?",
+                "Ok, potrebna mi je potvrda o plaćenoj školarini u pdf formatu. Možeš li mi je poslati?",
               timestamp: new Date(),
               seen: false,
             };
@@ -985,9 +1007,3 @@ export default {
   },
 };
 </script>
-
-<style lang="scss">
-.line-new {
-  display: none;
-}
-</style>
