@@ -1,5 +1,4 @@
 from app import app
-from flask import jsonify
 import requests, json, time
 
 url = 'http://localhost:8080/engine-rest'
@@ -27,7 +26,6 @@ def fetch_and_lock(worker_id, topic_name):
     body = {
         "workerId": worker_id,
         "maxTasks": 2,
-        #"asyncResponseTimeout": 5000,
         "topics": [{
             "topicName": topic_name,
             "lockDuration": 1000,

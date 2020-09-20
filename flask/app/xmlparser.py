@@ -1,16 +1,15 @@
 from app import app
 from app import camundarest
-from xmler import dict2xml
-from dicttoxml import dicttoxml
 import xml.etree.ElementTree as ET
 from flask_cors import cross_origin
 from flask_cors import CORS
-import codecs
 import json
+
 CORS(app, resources={r'/*': {'origins': '*'}})
 
 def parse(process_definition_id, form_key):
-    res = json.loads(camundarest.get_process_xml(process_definition_id))  # res gets dictionary
+    
+    res = json.loads(camundarest.get_process_xml(process_definition_id))  
     xml = res['bpmn20Xml']  # xml is stored in value of res
     tree = ET.ElementTree(ET.fromstring(xml))
     root = tree.getroot()
@@ -44,6 +43,5 @@ def parse(process_definition_id, form_key):
                                     temp = {}
         schema = {'fields' : fields}
         data = {'model' : model, 'schema': schema}
-        #print("Data: ", data)
-        bigobj = json.dumps(data)#, ensure_ascii=False).encode('utf-8')
+        bigobj = json.dumps(data)
     return bigobj
